@@ -623,10 +623,26 @@ body.bible-fullscreen-mode .bible-fullscreen-exit{display:inline-flex;position:f
 <div class="page" id="page-settings">
   <div class="container" style="padding-top:16px;">
     <div class="card">
+      <div class="card-title">Supabase 配置</div>
+      <div class="form-group">
+        <label class="form-label">Project URL</label>
+        <input class="form-input" id="sbUrlInput" placeholder="https://your-project.supabase.co">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Anon / Publishable Key</label>
+        <textarea class="form-input" id="sbKeyInput" placeholder="粘贴 Supabase anon key / publishable key" style="min-height:96px;resize:vertical;"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-gold" onclick="saveSupabaseSettings()">保存并重连</button>
+        <button class="btn btn-outline" onclick="clearSupabaseSettings()">清空配置</button>
+      </div>
+      <div class="cloud-note">也可以直接编辑脚本顶部的 <code>DEFAULT_SB_URL</code> 和 <code>DEFAULT_SB_KEY</code>。</div>
+    </div>
+    <div class="card">
       <div class="card-title">系统信息</div>
       <div style="font-size:14px;color:var(--muted);line-height:2;">
-        <div>版本：1.0.0</div>
-        <div>数据库：Supabase 云端</div>
+        <div>版本：2.0.0</div>
+        <div>数据库：Supabase 云端（可配置）</div>
         <div>会众总数：<span id="settingTotal">—</span> 人</div>
       </div>
     </div>
@@ -790,8 +806,21 @@ window.LOCAL_BIBLE = {"GEN":{"1":[{"verse":1,"text":"起初，　神创造天地
 </script>
 <script>
 // ══ CONFIG ══════════════════════════════════════
-const SB_URL = 'https://ltndjkjaznbpywpdnbbd.supabase.co';
-const SB_KEY = 'sb_publishable_-iQd6oRvs41XgqRnqOdNwQ_pQXLajGM';
+const DEFAULT_SB_URL = 'https://your-project.supabase.co';
+const DEFAULT_SB_KEY = 'YOUR_SUPABASE_ANON_KEY';
+const SB_URL_STORAGE_KEY = 'churchSupabaseUrl';
+const SB_KEY_STORAGE_KEY = 'churchSupabaseAnonKey';
+let SB_URL = '';
+let SB_KEY = '';
+function refreshSupabaseConfig(){
+  const cfg=window.SUPABASE_CONFIG||{};
+  SB_URL=(localStorage.getItem(SB_URL_STORAGE_KEY)||cfg.url||window.SUPABASE_URL||DEFAULT_SB_URL).trim();
+  SB_KEY=(localStorage.getItem(SB_KEY_STORAGE_KEY)||cfg.anonKey||window.SUPABASE_ANON_KEY||DEFAULT_SB_KEY).trim();
+}
+function hasSupabaseConfig(){
+  return /^https:\/\/.+\.supabase\.co(?:\/)?$/i.test(SB_URL)&&!!SB_KEY&&!/your-project\.supabase\.co/i.test(SB_URL)&&!/YOUR_SUPABASE_ANON_KEY/i.test(SB_KEY);
+}
+refreshSupabaseConfig();
 let ADMIN = JSON.parse(localStorage.getItem('churchAdmin')||'{"user":"admin","pass":"123456"}');
 const DEFAULT_NORMAL_ACCOUNTS = {
   '1':{pass:'123456',role:'attendance',label:'签到账号'},
@@ -846,14 +875,138 @@ let songPickerMode=false;
 let songPickerSelection=new Set();
 
 // ══ SUPABASE ══════════════════════════════════════
-const SBH={
-  'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,
-  'Content-Type':'application/json','Prefer':'return=representation'
+const REMOTE_SETTING_MAP={
+  churchAdmin:'admin_account',
+  churchNormalAccounts:'normal_accounts',
+  churchWorshipData:'worship_data',
+  churchSongLibrary:'song_library',
+  churchWorshipServants:'worship_servants',
+  churchWorshipNameOptions:'worship_name_options',
+  churchRoleCandidatePools:'role_candidate_pools',
+  churchWorshipCloudUrl:'worship_cloud_url'
 };
-async function sbGet(t,q=''){const r=await fetch(`${SB_URL}/rest/v1/${t}?${q}`,{headers:SBH});if(!r.ok)throw new Error(await r.text());return r.json();}
-async function sbPost(t,b,prefer='return=representation'){const h={...SBH,'Prefer':prefer};const r=await fetch(`${SB_URL}/rest/v1/${t}`,{method:'POST',headers:h,body:JSON.stringify(b)});if(!r.ok)throw new Error(await r.text());return prefer.includes('return=representation')?r.json():null;}
-async function sbPatch(t,q,b){const r=await fetch(`${SB_URL}/rest/v1/${t}?${q}`,{method:'PATCH',headers:SBH,body:JSON.stringify(b)});if(!r.ok)throw new Error(await r.text());return r.json();}
-async function sbDelete(t,q){const r=await fetch(`${SB_URL}/rest/v1/${t}?${q}`,{method:'DELETE',headers:SBH});if(!r.ok)throw new Error(await r.text());}
+let suspendRemoteSettingSync=false;
+function buildSbHeaders(prefer='return=representation'){
+  return {'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':prefer};
+}
+function buildSbUrl(t,q=''){
+  const root=String(SB_URL||'').replace(/\/+$/,'');
+  return `${root}/rest/v1/${t}${q?`?${q}`:''}`;
+}
+async function sbParse(res){
+  const text=await res.text();
+  if(!res.ok)throw new Error(text||`${res.status} ${res.statusText}`);
+  return text?JSON.parse(text):null;
+}
+async function sbGet(t,q=''){
+  if(!hasSupabaseConfig())throw new Error('请先配置 Supabase');
+  const r=await fetch(buildSbUrl(t,q),{headers:buildSbHeaders()});
+  return await sbParse(r)||[];
+}
+async function sbPost(t,b,prefer='return=representation'){
+  if(!hasSupabaseConfig())throw new Error('请先配置 Supabase');
+  const r=await fetch(buildSbUrl(t),{method:'POST',headers:buildSbHeaders(prefer),body:JSON.stringify(b)});
+  return prefer.includes('return=representation')?(await sbParse(r)):null;
+}
+async function sbPatch(t,q,b){
+  if(!hasSupabaseConfig())throw new Error('请先配置 Supabase');
+  const r=await fetch(buildSbUrl(t,q),{method:'PATCH',headers:buildSbHeaders(),body:JSON.stringify(b)});
+  return await sbParse(r)||[];
+}
+async function sbDelete(t,q){
+  if(!hasSupabaseConfig())throw new Error('请先配置 Supabase');
+  const r=await fetch(buildSbUrl(t,q),{method:'DELETE',headers:buildSbHeaders()});
+  await sbParse(r);
+}
+async function sbUpsert(t,b,onConflict='id',prefer='resolution=merge-duplicates,return=minimal'){
+  if(!hasSupabaseConfig())throw new Error('请先配置 Supabase');
+  const q=onConflict?`on_conflict=${encodeURIComponent(onConflict)}`:'';
+  const r=await fetch(buildSbUrl(t,q),{method:'POST',headers:buildSbHeaders(prefer),body:JSON.stringify(b)});
+  return prefer.includes('return=minimal')?(await sbParse(r)):await sbParse(r);
+}
+function parseStoragePayload(key,value){
+  if(key==='churchWorshipCloudUrl')return value;
+  try{return JSON.parse(value);}catch(_){return value;}
+}
+function writeLocalCache(key,value){
+  suspendRemoteSettingSync=true;
+  try{
+    if(typeof value==='string')localStorage.setItem(key,value);
+    else localStorage.setItem(key,JSON.stringify(value));
+  }finally{
+    suspendRemoteSettingSync=false;
+  }
+}
+function readRemoteSetting(remote,key,fallback){
+  return Object.prototype.hasOwnProperty.call(remote,key)?remote[key]:fallback;
+}
+async function saveRemoteSettingByStorageKey(key,value){
+  const remoteKey=REMOTE_SETTING_MAP[key];
+  if(!remoteKey||suspendRemoteSettingSync||!hasSupabaseConfig())return;
+  await sbUpsert('app_settings',{key:remoteKey,value:parseStoragePayload(key,value)},'key','resolution=merge-duplicates,return=minimal');
+}
+const RAW_STORAGE_SET_ITEM=Storage.prototype.setItem;
+Storage.prototype.setItem=function(key,value){
+  RAW_STORAGE_SET_ITEM.call(this,key,value);
+  if(this===localStorage){
+    const remoteKey=REMOTE_SETTING_MAP[key];
+    if(remoteKey&&typeof setSyncing==='function')setSyncing();
+    saveRemoteSettingByStorageKey(key,value)
+      .then(()=>{if(remoteKey&&typeof setSynced==='function')setSynced();})
+      .catch(err=>{
+        console.error(err);
+        if(remoteKey&&typeof setSyncErr==='function')setSyncErr();
+      });
+  }
+};
+async function ensureRemoteSettingDefaults(remote){
+  const missing=[];
+  if(!Object.prototype.hasOwnProperty.call(remote,'admin_account'))missing.push({key:'admin_account',value:ADMIN});
+  if(!Object.prototype.hasOwnProperty.call(remote,'normal_accounts'))missing.push({key:'normal_accounts',value:NORMAL_ACCOUNTS});
+  if(!Object.prototype.hasOwnProperty.call(remote,'worship_data'))missing.push({key:'worship_data',value:worshipData});
+  if(!Object.prototype.hasOwnProperty.call(remote,'song_library'))missing.push({key:'song_library',value:songLibrary});
+  if(!Object.prototype.hasOwnProperty.call(remote,'worship_servants'))missing.push({key:'worship_servants',value:worshipServants});
+  if(!Object.prototype.hasOwnProperty.call(remote,'worship_name_options'))missing.push({key:'worship_name_options',value:worshipNameOptions});
+  if(!Object.prototype.hasOwnProperty.call(remote,'role_candidate_pools'))missing.push({key:'role_candidate_pools',value:roleCandidatePools});
+  const cloudUrl=(localStorage.getItem('churchWorshipCloudUrl')||'').trim();
+  if(cloudUrl&&!Object.prototype.hasOwnProperty.call(remote,'worship_cloud_url'))missing.push({key:'worship_cloud_url',value:cloudUrl});
+  if(missing.length)await sbUpsert('app_settings',missing,'key','resolution=merge-duplicates,return=minimal');
+}
+async function loadRemoteSettings(){
+  if(!hasSupabaseConfig())return;
+  const rows=await sbGet('app_settings','select=key,value');
+  const remote={};
+  rows.forEach(row=>{remote[row.key]=row.value;});
+  await ensureRemoteSettingDefaults(remote);
+  ADMIN=readRemoteSetting(remote,'admin_account',ADMIN)||ADMIN;
+  NORMAL_ACCOUNTS={...DEFAULT_NORMAL_ACCOUNTS,...(readRemoteSetting(remote,'normal_accounts',NORMAL_ACCOUNTS)||{})};
+  worshipData=readRemoteSetting(remote,'worship_data',worshipData)||worshipData;
+  songLibrary=readRemoteSetting(remote,'song_library',songLibrary)||songLibrary;
+  worshipServants=readRemoteSetting(remote,'worship_servants',worshipServants)||worshipServants;
+  worshipNameOptions=readRemoteSetting(remote,'worship_name_options',worshipNameOptions)||worshipNameOptions;
+  roleCandidatePools=readRemoteSetting(remote,'role_candidate_pools',roleCandidatePools)||roleCandidatePools;
+  roleCandidatePoolsLoaded=Object.keys(roleCandidatePools||{}).length>0;
+  const remoteCloudUrl=String(readRemoteSetting(remote,'worship_cloud_url',localStorage.getItem('churchWorshipCloudUrl')||'')||'').trim();
+  writeLocalCache('churchAdmin',ADMIN);
+  writeLocalCache('churchNormalAccounts',NORMAL_ACCOUNTS);
+  writeLocalCache('churchWorshipData',worshipData);
+  writeLocalCache('churchSongLibrary',songLibrary);
+  writeLocalCache('churchWorshipServants',worshipServants);
+  writeLocalCache('churchWorshipNameOptions',worshipNameOptions);
+  writeLocalCache('churchRoleCandidatePools',roleCandidatePools);
+  suspendRemoteSettingSync=true;
+  try{
+    if(remoteCloudUrl)localStorage.setItem('churchWorshipCloudUrl',remoteCloudUrl);
+    else localStorage.removeItem('churchWorshipCloudUrl');
+  }finally{
+    suspendRemoteSettingSync=false;
+  }
+  const adminInput=document.getElementById('newUser');
+  if(adminInput)adminInput.value=ADMIN.user||'';
+  const cloudInput=document.getElementById('worshipCloudUrl');
+  if(cloudInput)cloudInput.value=remoteCloudUrl;
+  updateAdminUI();
+}
 
 function getDefaultFamilyByMember(){
   const map={};
@@ -1988,6 +2141,60 @@ async function loadWorshipFromCloud(showResult=false){
 function setSyncing(){document.getElementById('syncDot').className='sync-dot syncing';}
 function setSynced(){document.getElementById('syncDot').className='sync-dot';}
 function setSyncErr(){document.getElementById('syncDot').className='sync-dot error';}
+function fillSupabaseConfigInputs(){
+  const urlInput=document.getElementById('sbUrlInput');
+  const keyInput=document.getElementById('sbKeyInput');
+  if(urlInput)urlInput.value=SB_URL&&SB_URL!==DEFAULT_SB_URL?SB_URL:'';
+  if(keyInput)keyInput.value=SB_KEY&&SB_KEY!==DEFAULT_SB_KEY?SB_KEY:'';
+}
+async function bootApp(showToastOnMissing=false){
+  refreshSupabaseConfig();
+  fillSupabaseConfigInputs();
+  const cloudInput=document.getElementById('worshipCloudUrl');
+  if(cloudInput)cloudInput.value=localStorage.getItem('churchWorshipCloudUrl')||'';
+  const adminInput=document.getElementById('newUser');
+  if(adminInput)adminInput.value=ADMIN.user;
+  updateAdminUI();
+  renderWeeklyPublic();
+  renderWorshipPage();
+  if(!hasSupabaseConfig()){
+    setSyncErr();
+    if(document.getElementById('settingTotal'))document.getElementById('settingTotal').textContent=members.length;
+    if(showToastOnMissing)showToast('请先在设置页填写 Supabase URL 和 Anon Key');
+    return;
+  }
+  try{
+    await loadRemoteSettings();
+    await loadAll();
+    renderWeeklyPublic();
+    renderWorshipPage();
+    const cloudUrl=(localStorage.getItem('churchWorshipCloudUrl')||'').trim();
+    if(cloudUrl)await loadWorshipFromCloud(false);
+  }catch(e){
+    setSyncErr();
+    console.error(e);
+    if(showToastOnMissing)showToast('❌ Supabase 连接失败');
+  }
+}
+function saveSupabaseSettings(){
+  const url=(document.getElementById('sbUrlInput')?.value||'').trim();
+  const key=(document.getElementById('sbKeyInput')?.value||'').trim();
+  if(!url||!key){showToast('请填写完整的 Supabase 配置');return;}
+  localStorage.setItem(SB_URL_STORAGE_KEY,url);
+  localStorage.setItem(SB_KEY_STORAGE_KEY,key);
+  refreshSupabaseConfig();
+  fillSupabaseConfigInputs();
+  showToast('✅ 配置已保存，正在重连');
+  bootApp(true);
+}
+function clearSupabaseSettings(){
+  localStorage.removeItem(SB_URL_STORAGE_KEY);
+  localStorage.removeItem(SB_KEY_STORAGE_KEY);
+  refreshSupabaseConfig();
+  fillSupabaseConfigInputs();
+  setSyncErr();
+  showToast('已清空 Supabase 配置');
+}
 
 function populateAttGroupSelect(){
   const sel=document.getElementById('attGroupSelect');
@@ -2006,6 +2213,13 @@ function populateAttGroupSelect(){
 
 // ══ LOAD ══════════════════════════════════════════
 async function loadAll(){
+  if(!hasSupabaseConfig()){
+    setSyncErr();
+    if(document.getElementById('settingTotal'))document.getElementById('settingTotal').textContent=members.length;
+    renderAttList();
+    renderMemberList();
+    return;
+  }
   try{
     setSyncing();
     [members,groups]=await Promise.all([
@@ -2019,7 +2233,7 @@ async function loadAll(){
     populateAttGroupSelect();
     const att=await sbGet('attendance',`date=eq.${today}&select=member_id`);
     attendance=new Set(att.map(a=>a.member_id));
-    setSynced();renderAttList();
+    setSynced();renderAttList();renderMemberList();
     if(canManageAttendance())ensureDefaultFamilyGroupsAndAssignments().catch(e=>{setSyncErr();showToast('❌ 小组同步失败');console.error(e);});
   }catch(e){setSyncErr();showToast('❌ 连接失败');console.error(e);}
 }
@@ -2634,15 +2848,7 @@ function showToast(msg){
 }
 
 // ══ INIT ════════════════════════════════════════════
-const cloudInput=document.getElementById('worshipCloudUrl');
-if(cloudInput)cloudInput.value=localStorage.getItem('churchWorshipCloudUrl')||'';
-const adminInput=document.getElementById('newUser');
-if(adminInput)adminInput.value=ADMIN.user;
-updateAdminUI();
-loadAll();
-renderWeeklyPublic();
-renderWorshipPage();
-loadWorshipFromCloud(false);
+bootApp(true);
 </script>
 </body>
 </html>
