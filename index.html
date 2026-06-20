@@ -806,8 +806,8 @@ window.LOCAL_BIBLE = {"GEN":{"1":[{"verse":1,"text":"起初，　神创造天地
 </script>
 <script>
 // ══ CONFIG ══════════════════════════════════════
-const DEFAULT_SB_URL = 'https://your-project.supabase.co';
-const DEFAULT_SB_KEY = 'YOUR_SUPABASE_ANON_KEY';
+const DEFAULT_SB_URL = 'https://wvkijssxafojelbgjocb.supabase.co';
+const DEFAULT_SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2a2lqc3N4YWZvamVsYmdqb2NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5NjUwODksImV4cCI6MjA5NzU0MTA4OX0.6et5UayBT7LXUAR2w73SaWR1s7j0UajC_QnbkmHRCPQ';
 const SB_URL_STORAGE_KEY = 'churchSupabaseUrl';
 const SB_KEY_STORAGE_KEY = 'churchSupabaseAnonKey';
 let SB_URL = '';
@@ -2144,8 +2144,8 @@ function setSyncErr(){document.getElementById('syncDot').className='sync-dot err
 function fillSupabaseConfigInputs(){
   const urlInput=document.getElementById('sbUrlInput');
   const keyInput=document.getElementById('sbKeyInput');
-  if(urlInput)urlInput.value=SB_URL&&SB_URL!==DEFAULT_SB_URL?SB_URL:'';
-  if(keyInput)keyInput.value=SB_KEY&&SB_KEY!==DEFAULT_SB_KEY?SB_KEY:'';
+  if(urlInput)urlInput.value=SB_URL&&SB_URL!==DEFAULT_SB_URL?SB_URL:'https://wvkijssxafojelbgjocb.supabase.co';
+  if(keyInput)keyInput.value=SB_KEY&&SB_KEY!==DEFAULT_SB_KEY?SB_KEY:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2a2lqc3N4YWZvamVsYmdqb2NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5NjUwODksImV4cCI6MjA5NzU0MTA4OX0.6et5UayBT7LXUAR2w73SaWR1s7j0UajC_QnbkmHRCPQ';
 }
 async function bootApp(showToastOnMissing=false){
   refreshSupabaseConfig();
