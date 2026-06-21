@@ -202,8 +202,8 @@ body.device-desktop .container{max-width:1100px;}
 @keyframes spin{to{transform:rotate(360deg);}}
 
 /* ── TOAST ── */
-.toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--ink);color:white;padding:10px 22px;border-radius:30px;font-size:14px;z-index:999;transition:transform .25s;white-space:nowrap;}
-.toast.show{transform:translateX(-50%) translateY(0);}
+.toast{position:fixed;top:76px;bottom:auto;left:50%;transform:translateX(-50%) translateY(-80px);background:var(--ink);color:white;padding:8px 16px;border-radius:999px;font-size:13px;z-index:999;transition:transform .22s, opacity .22s;white-space:nowrap;opacity:0;}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
 
 /* ── SECTION LABEL ── */
 .section-label{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin:16px 0 8px;}
@@ -335,6 +335,7 @@ body.bible-fullscreen-mode .bible-fullscreen-exit{display:inline-flex;position:f
     <button class="btn btn-outline attendance-only" onclick="markAll(false)">清空</button>
     <button class="btn btn-gold attendance-only" onclick="openNewMemberSheet(false)">＋ 添加</button>
     <button class="btn btn-blue attendance-only" onclick="openAbsentSheet()">📋 签到汇总</button>
+    <button class="btn btn-green attendance-only" onclick="finalizeAttendance()">✅ 完成本次签到</button>
   </div>
   <div class="filter-tabs" id="attTabs">
     <div class="tab active" onclick="setAttFilter('all',this)">全部</div>
@@ -846,8 +847,19 @@ const WORSHIP_ROLES = ['主领','伴唱','键盘','吉他','贝斯','鼓','教�
 const DEFAULT_SONG_LIBRARY = ['待填写'];
 
 // ══ STATE ════════════════════════════════════════
+function getLocalDateString(date=new Date()){
+  const y=date.getFullYear();
+  const m=String(date.getMonth()+1).padStart(2,'0');
+  const d=String(date.getDate()).padStart(2,'0');
+  return `${y}-${m}-${d}`;
+}
+function getMonthRange(ym){
+  const [year,month]=ym.split('-').map(Number);
+  const lastDay=new Date(year,month,0).getDate();
+  return{from:`${ym}-01`,to:`${ym}-${String(lastDay).padStart(2,'0')}`};
+}
 let members=[], groups=[], attendance=new Set();
-let today=new Date().toISOString().slice(0,10);
+let today=getLocalDateString();
 let attFilter='all', attGroupFilter='all', memberFilter='all', reportTab='month';
 let expandedFamilyGroups=new Set();
 let editingMemberId=null, insertAfterIdx=null;
@@ -873,6 +885,32 @@ let roleCandidatePoolsLoaded=localStorage.getItem('churchRoleCandidatePools')!==
 let roleCandidatePools=JSON.parse(localStorage.getItem('churchRoleCandidatePools')||'{}');
 let songPickerMode=false;
 let songPickerSelection=new Set();
+const SERVICE_RECORDS_KEY='church_service_records';
+const SERVICE_RECORDS_REMOTE_KEY='service_records';
+
+/*
+Supabase service_records table:
+
+CREATE TABLE IF NOT EXISTS service_records (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  service_date date UNIQUE NOT NULL,
+  total_count integer DEFAULT 0,
+  present_count integer DEFAULT 0,
+  absent_count integer DEFAULT 0,
+  attendance_rate numeric DEFAULT 0,
+  present_members_json jsonb DEFAULT '[]'::jsonb,
+  absent_members_json jsonb DEFAULT '[]'::jsonb,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
+
+If RLS is enabled, allow the anon key used by this single-page app to write:
+
+ALTER TABLE service_records ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "service records read" ON service_records FOR SELECT USING (true);
+CREATE POLICY "service records insert" ON service_records FOR INSERT WITH CHECK (true);
+CREATE POLICY "service records update" ON service_records FOR UPDATE USING (true) WITH CHECK (true);
+*/
 
 // ══ SUPABASE ══════════════════════════════════════
 const REMOTE_SETTING_MAP={
@@ -923,6 +961,145 @@ async function sbUpsert(t,b,onConflict='id',prefer='resolution=merge-duplicates,
   const q=onConflict?`on_conflict=${encodeURIComponent(onConflict)}`:'';
   const r=await fetch(buildSbUrl(t,q),{method:'POST',headers:buildSbHeaders(prefer),body:JSON.stringify(b)});
   return prefer.includes('return=minimal')?(await sbParse(r)):await sbParse(r);
+}
+function readLocalServiceRecords(){
+  try{
+    const rows=JSON.parse(localStorage.getItem(SERVICE_RECORDS_KEY)||'[]');
+    return Array.isArray(rows)?rows:[];
+  }catch(_){return[];}
+}
+function mergeServiceRecord(rows,record){
+  const idx=rows.findIndex(r=>r.service_date===record.service_date);
+  const saved={...record,id:record.id||`local-${record.service_date}`,updated_at:new Date().toISOString()};
+  if(idx>=0)rows[idx]={...rows[idx],...saved};
+  else rows.push({...saved,created_at:record.created_at||new Date().toISOString()});
+  return saved;
+}
+function writeLocalServiceRecord(record){
+  const rows=readLocalServiceRecords();
+  const saved=mergeServiceRecord(rows,record);
+  localStorage.setItem(SERVICE_RECORDS_KEY,JSON.stringify(rows));
+  return saved;
+}
+function normalizeServiceRecord(row){
+  if(!row)return null;
+  const parseJson=v=>{
+    if(Array.isArray(v))return v;
+    if(!v)return[];
+    try{return JSON.parse(v);}catch(_){return[];}
+  };
+  return {
+    ...row,
+    total_count:Number(row.total_count)||0,
+    present_count:Number(row.present_count)||0,
+    absent_count:Number(row.absent_count)||0,
+    attendance_rate:Number(row.attendance_rate)||0,
+    present_members_json:parseJson(row.present_members_json),
+    absent_members_json:parseJson(row.absent_members_json)
+  };
+}
+function memberKeySet(list){
+  const ids=new Set(), names=new Set();
+  (list||[]).forEach(item=>{
+    if(item&&typeof item==='object'){
+      if(item.id!==undefined&&item.id!==null)ids.add(String(item.id));
+      if(item.name)names.add(String(item.name));
+    }else if(item!==undefined&&item!==null){
+      names.add(String(item));
+    }
+  });
+  return{ids,names};
+}
+function serviceRecordPresentSet(record){
+  const keys=memberKeySet(record?.present_members_json||[]);
+  const set=new Set();
+  members.forEach(m=>{
+    if(keys.ids.has(String(m.id))||keys.names.has(String(m.name)))set.add(m.id);
+  });
+  return set;
+}
+async function fetchServiceRecordByDate(date){
+  let tableRecord=null;
+  if(hasSupabaseConfig()){
+    try{
+      const rows=await sbGet('service_records',`service_date=eq.${date}&select=*`);
+      if(rows[0])tableRecord=normalizeServiceRecord(rows[0]);
+    }catch(e){
+      console.warn('service_records 读取失败，改用云端兼容汇总',e);
+    }
+  }
+  if(tableRecord)return tableRecord;
+  const remoteRows=await fetchRemoteServiceRecordsFromSettings();
+  return normalizeServiceRecord(remoteRows.find(r=>r.service_date===date)||readLocalServiceRecords().find(r=>r.service_date===date));
+}
+async function fetchRemoteServiceRecordsFromSettings(){
+  if(!hasSupabaseConfig())return[];
+  try{
+    const rows=await sbGet('app_settings',`key=eq.${SERVICE_RECORDS_REMOTE_KEY}&select=value`);
+    const value=rows[0]?.value;
+    return Array.isArray(value)?value:[];
+  }catch(e){
+    console.warn('service_records 云端兼容记录读取失败',e);
+    return[];
+  }
+}
+async function saveRemoteServiceRecordToSettings(record){
+  const rows=await fetchRemoteServiceRecordsFromSettings();
+  mergeServiceRecord(rows,record);
+  await sbUpsert('app_settings',{key:SERVICE_RECORDS_REMOTE_KEY,value:rows},'key','resolution=merge-duplicates,return=minimal');
+  return rows;
+}
+async function fetchServiceRecordsByMonth(ym){
+  const localRows=readLocalServiceRecords().filter(r=>String(r.service_date||'').startsWith(ym)).map(normalizeServiceRecord);
+  const remoteRows=(await fetchRemoteServiceRecordsFromSettings()).filter(r=>String(r.service_date||'').startsWith(ym)).map(normalizeServiceRecord);
+  if(!hasSupabaseConfig())return localRows;
+  try{
+    const range=getMonthRange(ym);
+    const rows=await sbGet('service_records',`service_date=gte.${range.from}&service_date=lte.${range.to}&select=*`);
+    const byDate={};
+    localRows.forEach(r=>{if(r)byDate[r.service_date]=r;});
+    remoteRows.forEach(r=>{if(r)byDate[r.service_date]=r;});
+    rows.map(normalizeServiceRecord).forEach(r=>{if(r)byDate[r.service_date]=r;});
+    return Object.values(byDate);
+  }catch(e){
+    console.warn('service_records 表不可用，月报改用云端兼容汇总和实时签到',e);
+    const byDate={};
+    localRows.forEach(r=>{if(r)byDate[r.service_date]=r;});
+    remoteRows.forEach(r=>{if(r)byDate[r.service_date]=r;});
+    return Object.values(byDate);
+  }
+}
+async function saveServiceRecord(record){
+  const payload={
+    service_date:record.service_date,
+    total_count:record.total_count,
+    present_count:record.present_count,
+    absent_count:record.absent_count,
+    attendance_rate:record.attendance_rate,
+    present_members_json:record.present_members_json,
+    absent_members_json:record.absent_members_json,
+    updated_at:new Date().toISOString()
+  };
+  if(hasSupabaseConfig()){
+    try{
+      await sbUpsert('service_records',payload,'service_date','resolution=merge-duplicates,return=minimal');
+      writeLocalServiceRecord(payload);
+      return{target:'service_records'};
+    }catch(e){
+      console.warn('service_records 保存失败，改存云端兼容记录',e);
+      try{
+        await saveRemoteServiceRecordToSettings(payload);
+        writeLocalServiceRecord(payload);
+        return{target:'app_settings'};
+      }catch(settingsErr){
+        console.warn('云端兼容记录保存失败，已自动保存到本地',settingsErr);
+        writeLocalServiceRecord(payload);
+        return{target:'local-fallback'};
+      }
+    }
+  }
+  writeLocalServiceRecord(payload);
+  return{target:'local'};
 }
 function parseStoragePayload(key,value){
   if(key==='churchWorshipCloudUrl')return value;
@@ -2341,6 +2518,48 @@ async function markAll(present){
   }catch(e){attendance.clear();prev.forEach(id=>attendance.add(id));renderAttList();setSyncErr();showToast('❌ 失败');}
 }
 
+async function finalizeAttendance(){
+  if(!requireAttendanceManager())return;
+  today=getLocalDateString();
+  document.getElementById('dateDisplay').textContent=today;
+  const existing=await fetchServiceRecordByDate(today);
+  if(existing&&!confirm('今天已经保存过签到汇总，是否覆盖？'))return;
+  if(!confirm('确认保存今天的签到汇总吗？保存后月报将读取这份记录。'))return;
+
+  const presentMembers=members.filter(m=>attendance.has(m.id)).map(m=>({id:m.id,name:m.name}));
+  const absentMembers=members.filter(m=>!attendance.has(m.id)).map(m=>({id:m.id,name:m.name}));
+  const totalCount=members.length;
+  const presentCount=presentMembers.length;
+  const record={
+    service_date:today,
+    total_count:totalCount,
+    present_count:presentCount,
+    absent_count:absentMembers.length,
+    attendance_rate:totalCount?Math.round(presentCount/totalCount*100):0,
+    present_members_json:presentMembers,
+    absent_members_json:absentMembers,
+    created_at:existing?.created_at||new Date().toISOString(),
+    updated_at:new Date().toISOString()
+  };
+
+  try{
+    setSyncing();
+    const result=await saveServiceRecord(record);
+    setSynced();
+    if(document.getElementById('monthPicker')?.value===today.slice(0,7))buildMonthReport();
+    const msg=result.target==='service_records'
+      ? '✅ 本次签到已完成'
+      : result.target==='app_settings'
+        ? '✅ 已保存到云端汇总'
+        : '已保存到本地汇总';
+    showToast(msg);
+  }catch(e){
+    setSyncErr();
+    console.error(e);
+    showToast('❌ 保存失败');
+  }
+}
+
 // ══ ABSENT SHEET ══════════════════════════════════
 function openAbsentSheet(){
   const absent=members.filter(m=>!attendance.has(m.id));
@@ -2674,11 +2893,17 @@ function setReportTab(t,el){
 
 async function fetchMonthAttendance(ym){
   // ym = "2025-06"
-  const rows=await sbGet('attendance',`date=gte.${ym}-01&date=lte.${ym}-31&select=member_id,date`);
+  const range=getMonthRange(ym);
+  const rows=hasSupabaseConfig()
+    ? await sbGet('attendance',`date=gte.${range.from}&date=lte.${range.to}&select=member_id,date`)
+    : [];
+  const records=await fetchServiceRecordsByMonth(ym);
   // Build map: date -> Set<member_id>
   const map={};
   rows.forEach(r=>{if(!map[r.date])map[r.date]=new Set();map[r.date].add(r.member_id);});
-  return map;
+  const serviceRecords={};
+  records.forEach(r=>{if(r)serviceRecords[r.service_date]=r;});
+  return{map,serviceRecords};
 }
 
 function getSundaysInMonth(ym){
@@ -2686,7 +2911,7 @@ function getSundaysInMonth(ym){
   const result=[];
   const d=new Date(year,month-1,1);
   while(d.getMonth()===month-1){
-    if(d.getDay()===0)result.push(d.toISOString().slice(0,10));
+    if(d.getDay()===0)result.push(getLocalDateString(d));
     d.setDate(d.getDate()+1);
   }
   return result;
@@ -2705,18 +2930,29 @@ async function buildMonthReport(){
   if(!ym)return;
   document.getElementById('monthReportContent').innerHTML='<div class="loading"><div class="spinner"></div><br>加载中…</div>';
   try{
-    const map=await fetchMonthAttendance(ym);
+    const {map,serviceRecords}=await fetchMonthAttendance(ym);
     const dates=getSundaysInMonth(ym);
     const total=members.length;
+    const reportMap={...map};
+    dates.forEach(d=>{
+      if(serviceRecords[d])reportMap[d]=serviceRecordPresentSet(serviceRecords[d]);
+    });
+    const weekSummaries=dates.map(d=>{
+      const rec=serviceRecords[d];
+      const present=rec?rec.present_count:(reportMap[d]?.size||0);
+      const baseTotal=rec?rec.total_count:total;
+      const rate=rec?Math.round(Number(rec.attendance_rate)||0):(baseTotal?Math.round(present/baseTotal*100):0);
+      return{date:d,completed:!!rec,present,absent:rec?rec.absent_count:Math.max(0,baseTotal-present),rate,total:baseTotal};
+    });
 
     // Per member stats
     const memberStats=members.map(m=>{
-      const present=dates.filter(d=>map[d]?.has(m.id)).length;
+      const present=dates.filter(d=>reportMap[d]?.has(m.id)).length;
       return{...m,present,total:dates.length,rate:dates.length?Math.round(present/dates.length*100):0};
     }).sort((a,b)=>a.rate-b.rate);
 
     const alertMembers=memberStats.filter(m=>m.rate<60&&dates.length>=2);
-    const avgRate=dates.length?Math.round(memberStats.reduce((s,m)=>s+m.rate,0)/Math.max(1,memberStats.length)):0;
+    const avgRate=weekSummaries.length?Math.round(weekSummaries.reduce((s,w)=>s+w.rate,0)/weekSummaries.length):0;
 
     let html=`<div class="stats-grid">
       <div class="stat-card"><div class="stat-num">${dates.length}</div><div class="stat-label">聚会次数</div></div>
@@ -2733,7 +2969,7 @@ async function buildMonthReport(){
 
     html+=`<div class="card">
       <div class="card-title">📅 每次聚会出席</div>
-      ${dates.map(d=>{const cnt=map[d]?.size||0;const r=Math.round(cnt/total*100);return`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--stone);font-size:14px;"><span>${d}</span><span class="${r>=80?'rate-high':r>=60?'rate-mid':'rate-low'}">${cnt}人 ${r}%</span></div>`;}).join('')}
+      ${weekSummaries.map(w=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:6px 0;border-bottom:1px solid var(--stone);font-size:14px;"><span>${w.date} <span class="${w.completed?'rate-high':'rate-low'}" style="font-size:12px;">${w.completed?'已完成签到':'未完成签到'}</span></span><span class="${w.rate>=80?'rate-high':w.rate>=60?'rate-mid':'rate-low'}">${w.present}人 ${w.rate}%</span></div>`).join('')}
       ${!dates.length?'<div style="color:var(--muted);padding:12px 0;">本月没有星期天</div>':''}
     </div>`;
 
@@ -2747,7 +2983,7 @@ async function buildMonthReport(){
 
     document.getElementById('monthReportContent').innerHTML=html;
     // Cache for download
-    window._monthReportData={ym,dates,map,memberStats,alertMembers,avgRate,total};
+    window._monthReportData={ym,dates,map:reportMap,serviceRecords,weekSummaries,memberStats,alertMembers,avgRate,total};
   }catch(e){document.getElementById('monthReportContent').innerHTML='<div class="empty">加载失败，请重试</div>';console.error(e);}
 }
 
@@ -2812,6 +3048,11 @@ function buildReportText(d,isYear){
   if(!d)return'暂无数据';
   let t=isYear?`教会年度报表 - ${d.yr}年\n`:`教会月度报表 - ${d.ym}\n`;
   t+=`聚会次数：${d.dates.length}  平均出席率：${d.avgRate}%  总人数：${d.total}\n\n`;
+  if(!isYear&&d.weekSummaries?.length){
+    t+=`【每次聚会出席】\n`;
+    d.weekSummaries.forEach(w=>t+=`${w.date} ${w.completed?'已完成签到':'未完成签到'}  出席${w.present}人  缺席${w.absent}人  出席率${w.rate}%\n`);
+    t+='\n';
+  }
   if(d.alertMembers.length){t+=`【需重点关注（出席率<60%）】\n`;d.alertMembers.forEach((m,i)=>t+=`${i+1}. ${m.name} ${m.rate}% (${m.present}/${m.total})\n`);t+='\n';}
   t+=`【全体出席详情】\n`;
   d.memberStats.forEach((m,i)=>t+=`${i+1}. ${m.name}  ${m.present}/${m.total}次  出席率${m.rate}%  缺勤率${100-m.rate}%\n`);
@@ -2844,7 +3085,8 @@ function closeModalOnOverlay(e,id){if(e.target===document.getElementById(id))clo
 // ══ TOAST ══════════════════════════════════════════
 function showToast(msg){
   const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2500);
+  clearTimeout(window._toastTimer);
+  window._toastTimer=setTimeout(()=>t.classList.remove('show'),1200);
 }
 
 // ══ INIT ════════════════════════════════════════════
