@@ -345,32 +345,53 @@ body.device-desktop .container{max-width:1100px;}
 
 /* 聚会信息卡 */
 .meeting-card{
-  background:#fff;border-radius:20px;padding:18px;
-  margin-bottom:14px;box-shadow:0 2px 12px rgba(0,0,0,.06);
+  background:#fff;border-radius:22px;padding:20px;
+  margin-bottom:14px;box-shadow:0 3px 16px rgba(0,0,0,.07);
 }
-.meeting-card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
-.meeting-card-head-left{display:flex;align-items:center;gap:6px;}
-.meeting-head-icon{font-size:16px;}
-.meeting-card-title{font-size:14px;font-weight:700;color:var(--ink);}
+.meeting-card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.meeting-card-head-left{display:flex;align-items:center;gap:8px;}
+.meeting-head-icon{font-size:18px;}
+.meeting-card-title{font-size:16px;font-weight:700;color:var(--ink);}
 .meeting-date{font-size:13px;font-weight:600;color:#3aaa64;}
+
+/* 证道 — 单行大卡 */
+.meeting-sermon-row{
+  background:linear-gradient(135deg,#f0f7ec,#e8f3e0);
+  border-radius:16px;padding:14px 16px;
+  display:flex;align-items:center;gap:14px;
+  margin-bottom:10px;
+  border:1px solid rgba(90,124,69,.12);
+}
+.meeting-sermon-icon{
+  width:48px;height:48px;border-radius:14px;flex-shrink:0;
+  background:linear-gradient(135deg,#2d8c52,#3aaa64);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 3px 10px rgba(45,140,82,.28);
+}
+.meeting-sermon-icon svg{width:22px;height:22px;color:white;}
+.meeting-sermon-info{flex:1;min-width:0;}
+.meeting-sermon-label{font-size:12px;color:#3aaa64;font-weight:600;margin-bottom:3px;letter-spacing:.3px;}
+.meeting-sermon-name{font-size:20px;font-weight:700;color:var(--ink);line-height:1.2;}
+
+/* 祷告 + 主理 — 两列小卡 */
 .meeting-roles-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:0;}
 .meeting-roles-grid.three-col .meeting-role-name{font-size:13px;}
 .meeting-roles-grid.three-col .meeting-role-icon{width:30px;height:30px;}
 .meeting-roles-grid.three-col .meeting-role-icon svg{width:14px;height:14px;}
 .meeting-role-item{
-  background:#f6f6f4;border-radius:14px;padding:12px 12px 10px;
-  display:flex;align-items:center;gap:10px;
+  background:#f6f6f4;border-radius:16px;padding:14px 14px 12px;
+  display:flex;align-items:center;gap:12px;
 }
 .meeting-role-icon{
-  width:38px;height:38px;border-radius:50%;flex-shrink:0;
+  width:44px;height:44px;border-radius:13px;flex-shrink:0;
   background:linear-gradient(135deg,#2d8c52,#3aaa64);
   display:flex;align-items:center;justify-content:center;
-  box-shadow:0 2px 8px rgba(45,140,82,.25);
+  box-shadow:0 2px 8px rgba(45,140,82,.22);
 }
-.meeting-role-icon svg{width:18px;height:18px;color:white;}
+.meeting-role-icon svg{width:20px;height:20px;color:white;}
 .meeting-role-info{}
-.meeting-role-label{font-size:11px;color:#999;margin-bottom:2px;}
-.meeting-role-name{font-size:16px;font-weight:700;color:var(--ink);}
+.meeting-role-label{font-size:12px;color:#999;font-weight:500;margin-bottom:3px;}
+.meeting-role-name{font-size:17px;font-weight:700;color:var(--ink);}
 
 /* 敬拜组 + 祷告 下方两列 */
 .worship-prayer-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:10px;margin-bottom:14px;}
@@ -2442,7 +2463,7 @@ const BIBLE_BOOKS=[
   {name:'约翰三书',abbr:'3JN',chapters:1},{name:'犹大书',abbr:'JUD',chapters:1},{name:'启示录',abbr:'REV',chapters:22}
 ];
 let bibleInitialized=false,bibleCollapsed=false;
-let currentBibleBookAbbr='JHN',currentBibleChapter=3;
+let currentBibleBookAbbr='JON',currentBibleChapter=3;
 function escapeHtml(str){return String(str).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
 function initBiblePage(){
   if(!document.getElementById('page-bible'))return;
@@ -2857,7 +2878,7 @@ function renderWeeklyPublic(){
       <div class="verse-ref">—— ${dailyVerse.ref}</div>
     </div>
 
-    <!-- 聚会信息卡片（直接显示，无外层滑动） -->
+    <!-- 聚会信息卡片 -->
     <div class="meeting-card" style="margin-bottom:12px;box-sizing:border-box;">
       <div class="meeting-card-head">
         <div class="meeting-card-head-left">
@@ -2869,21 +2890,22 @@ function renderWeeklyPublic(){
           ${isLoggedIn()?`<button class="role-rota-edit-btn" onclick="openMeetingSetupSheet()">✏️ 设置</button>`:''}
         </div>
       </div>
-      <!-- 证道 + 祷告 + 主理 三格排列 -->
-      <div class="meeting-roles-grid three-col">
-        <div class="meeting-role-item">
-          <div class="meeting-role-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/>
-              <line x1="8" y1="23" x2="16" y2="23"/>
-            </svg>
-          </div>
-          <div class="meeting-role-info">
-            <div class="meeting-role-label">本周证道</div>
-            <div class="meeting-role-name">${info.sermon||'待填写'}</div>
-          </div>
+      <!-- 证道 — 单行突出展示 -->
+      <div class="meeting-sermon-row">
+        <div class="meeting-sermon-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/>
+            <line x1="8" y1="23" x2="16" y2="23"/>
+          </svg>
         </div>
+        <div class="meeting-sermon-info">
+          <div class="meeting-sermon-label">本周证道</div>
+          <div class="meeting-sermon-name">${info.sermon||'待填写'}</div>
+        </div>
+      </div>
+      <!-- 祷告 + 主理 — 两列并排 -->
+      <div class="meeting-roles-grid">
         <div class="meeting-role-item">
           <div class="meeting-role-icon" style="background:linear-gradient(135deg,#2d7dd2,#1a5ca8);">
             <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
