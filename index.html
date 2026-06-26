@@ -772,17 +772,31 @@ body.device-desktop .container{max-width:1100px;}
 
 .bible-reading-area{
   background:#fff;border-radius:20px;
-  margin:12px 14px 0;padding:20px 16px 24px;
+  margin:12px 14px 8px;padding:20px 16px 24px;
   box-shadow:0 2px 10px rgba(0,0,0,.05);
+  transition:margin .35s cubic-bezier(.4,0,.2,1),
+             border-radius .35s cubic-bezier(.4,0,.2,1),
+             box-shadow .35s cubic-bezier(.4,0,.2,1),
+             background .3s,color .3s;
 }
+/* Night mode */
+.bible-reading-area.night{
+  background:#1c1c1e!important;
+  color:#e8e3d8!important;
+}
+.bible-reading-area.night .bible-current-title,
+.bible-reading-area.night .bible-verse-text{color:#e8e3d8!important;}
+.bible-reading-area.night .bible-chapter-divider{color:#444!important;}
+.bible-reading-area.night .bible-verse-num{color:#6ab47b!important;}
 .bible-chapter-header{
   display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;
 }
 .bible-current-title{
   font-family:'Noto Serif SC',serif;font-size:18px;font-weight:700;color:var(--ink);
   flex:1;text-align:center;
+  transition:color .3s;
 }
-.bible-chapter-divider{text-align:center;color:#ccc;font-size:18px;margin-bottom:16px;line-height:1;}
+.bible-chapter-divider{text-align:center;color:#ccc;font-size:18px;margin-bottom:16px;line-height:1;transition:color .3s;}
 .bible-chapter-tools{display:flex;gap:8px;}
 .bible-tool-btn{
   display:flex;flex-direction:column;align-items:center;gap:2px;
@@ -793,9 +807,9 @@ body.device-desktop .container{max-width:1100px;}
 .bible-tool-btn svg{width:18px;height:18px;}
 
 .bible-result-list{display:flex;flex-direction:column;}
-.bible-verse{display:flex;align-items:flex-start;gap:12px;padding:8px 0;}
-.bible-verse-num{min-width:20px;font-size:14px;font-weight:700;color:var(--sage);flex-shrink:0;margin-top:2px;line-height:1.6;}
-.bible-verse-text{font-size:16px;color:var(--ink);line-height:1.75;flex:1;}
+.bible-verse{display:flex;align-items:flex-start;gap:10px;padding:6px 0;}
+.bible-verse-num{min-width:22px;font-size:13px;font-weight:700;color:var(--sage);flex-shrink:0;margin-top:3px;line-height:1.7;transition:color .3s;}
+.bible-verse-text{font-size:16px;color:var(--ink);line-height:1.8;flex:1;transition:color .3s;}
 .bible-verse-text mark{background:none;color:var(--sage);font-weight:700;}
 .bible-subtitle{font-size:13px;font-weight:700;color:#7b5530;margin:12px 0 4px;padding-left:32px;}
 
@@ -813,40 +827,115 @@ body.device-desktop .container{max-width:1100px;}
 .bible-result-item{}
 
 .bible-fab{
-  position:absolute;right:20px;bottom:80px;
-  width:52px;height:52px;border-radius:50%;
+  position:fixed;
+  right:16px;
+  /* 底部导航70px + 翻章栏~56px + 12px间距 */
+  bottom:calc(var(--nav-h) + 56px + 12px);
+  width:56px;height:56px;border-radius:16px;
   background:var(--sage);color:#fff;
   display:none;align-items:center;justify-content:center;
   flex-direction:column;gap:2px;
-  font-size:11px;font-family:'Noto Sans SC',sans-serif;
-  box-shadow:0 4px 14px rgba(90,124,69,.4);
-  border:none;cursor:pointer;z-index:5;
+  font-size:10px;font-family:'Noto Sans SC',sans-serif;
+  box-shadow:0 4px 16px rgba(90,124,69,.45);
+  border:none;cursor:pointer;z-index:30;
 }
 .bible-fab svg{width:20px;height:20px;}
 #page-bible.active .bible-fab{display:flex;}
+/* 全屏时翻章栏上方紧贴（无底部导航） */
+body.bible-fullscreen .bible-fab{
+  bottom:calc(56px + 12px);
+}
 
 .bible-bottom-toolbar{
   background:#fff;border-top:1px solid var(--stone);
-  padding:10px 16px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));
+  padding:10px 20px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));
   display:flex;align-items:center;justify-content:space-between;
   gap:8px;flex-shrink:0;
+  transition:background .3s;
 }
 .bible-nav-btn{
   border:1.5px solid var(--stone);background:#fff;color:var(--ink);
-  border-radius:24px;padding:9px 18px;font-size:14px;font-weight:600;
+  border-radius:24px;padding:9px 20px;font-size:14px;font-weight:600;
   cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:4px;transition:all .15s;
 }
 .bible-nav-btn:active:not(:disabled){border-color:var(--sage);color:var(--sage);}
 .bible-nav-btn:disabled{opacity:.35;cursor:not-allowed;}
-.bible-font-controls{display:flex;align-items:center;}
-.bible-font-btn{background:none;border:none;cursor:pointer;font-size:14px;font-weight:600;color:var(--ink);font-family:inherit;padding:9px 10px;}
-.bible-font-btn.current{font-size:18px;}
-.bible-night-btn{background:none;border:none;cursor:pointer;padding:8px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;font-family:'Noto Sans SC',sans-serif;color:#888;}
-.bible-night-btn svg{width:20px;height:20px;}
+
+/* Night toolbar */
+body.bible-night .bible-bottom-toolbar{background:#1c1c1e;border-top-color:#333;}
+body.bible-night .bible-nav-btn{background:#2c2c2e;border-color:#444;color:#e8e3d8;}
 
 .bible-search-card{display:none!important;}
 .bible-fullscreen-exit{display:none!important;}
 #bibleScopeSelect,#bibleBookSelect,#bibleChapterSelect{font-size:13px;}
+
+/* ── NIGHT MODE ── */
+body.bible-night #page-bible{background:#111;}
+body.bible-night .bible-appbar{background:#1c1c1e;border-bottom-color:#333;}
+body.bible-night .bible-appbar-title,
+body.bible-night .bible-appbar-btn{color:#e8e3d8;}
+body.bible-night .bible-selector-bar{background:#1c1c1e;border-bottom-color:#333;}
+body.bible-night .bible-select{background:#2c2c2e;border-color:#444;color:#e8e3d8;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;}
+body.bible-night .bible-search-bar{background:#1c1c1e;border-bottom-color:#333;}
+body.bible-night .bible-search-wrap{background:rgba(255,255,255,.08);}
+body.bible-night .bible-search-input{color:#e8e3d8;}
+body.bible-night .bible-filter-btn{color:#888;}
+body.bible-night .bible-last-read{background:#2c2c2e;border-color:#444;}
+body.bible-night .bible-last-read-left{color:#888;}
+body.bible-night .bible-last-read-ref{color:#e8e3d8;}
+body.bible-night .bible-scroll-area{background:#111;}
+
+/* ── FULLSCREEN ── */
+
+body.bible-fullscreen #page-bible{
+  bottom:0!important;
+  z-index:500!important;
+}
+body.bible-fullscreen .bottom-nav{display:none!important;}
+
+/* 隐藏非阅读 UI */
+body.bible-fullscreen .bible-selector-bar,
+body.bible-fullscreen .bible-search-bar,
+body.bible-fullscreen .bible-last-read,
+body.bible-fullscreen .bible-search-results{
+  display:none!important;
+}
+
+/* AppBar 全屏后半透明浮动 */
+body.bible-fullscreen .bible-appbar{
+  position:absolute;top:0;left:0;right:0;z-index:10;
+  background:rgba(255,255,255,.92);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  border-bottom:none;
+  box-shadow:0 1px 12px rgba(0,0,0,.06);
+}
+body.bible-night.bible-fullscreen .bible-appbar{
+  background:rgba(28,28,30,.92);
+}
+
+/* 滚动区填满，留出 appbar 高度 */
+body.bible-fullscreen .bible-scroll-area{
+  padding-top:60px;
+  padding-bottom:0;
+}
+
+/* 阅读卡片铺满，无外边距，无圆角 */
+body.bible-fullscreen .bible-reading-area{
+  margin:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  min-height:100%;
+}
+
+body.bible-fullscreen .bible-bottom-toolbar{
+  position:relative;z-index:5;
+}
+
+/* FAB 全屏时贴翻章栏 */
+body.bible-fullscreen .bible-fab{
+  bottom:calc(56px + 12px);
+}
 
 
 @media(max-width:480px){
@@ -1391,13 +1480,17 @@ body.device-desktop .container{max-width:1100px;}
       <span class="bible-appbar-title">圣经阅读</span>
     </div>
     <div class="bible-appbar-right">
-      <button class="bible-appbar-btn" onclick="">
+      <button class="bible-appbar-btn" id="bibleBookmarkBtn" onclick="toggleBibleBookmark()" title="收藏本章">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-        收藏
+        <span>收藏</span>
       </button>
-      <button class="bible-appbar-btn" onclick="">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        更多
+      <button class="bible-appbar-btn" id="bibleFullscreenBtn" onclick="toggleBibleFullscreen()" title="全屏阅读">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+        <span>全屏</span>
+      </button>
+      <button class="bible-appbar-btn" id="bibleMoreBtn" onclick="openBibleMoreMenu()" title="更多">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="12" cy="19" r="1" fill="currentColor"/></svg>
+        <span>更多</span>
       </button>
     </div>
   </div>
@@ -1434,7 +1527,7 @@ body.device-desktop .container{max-width:1100px;}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
       上次阅读：<span class="bible-last-read-ref" id="bibleLastReadRef">约翰福音 3:16</span>
     </div>
-    <button class="bible-continue-btn" onclick="loadBibleChapter()">
+    <button class="bible-continue-btn" onclick="jumpToBibleBookmark(currentBibleBookAbbr,currentBibleChapter)">
       继续阅读
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
     </button>
@@ -1455,27 +1548,25 @@ body.device-desktop .container{max-width:1100px;}
 
   </div><!-- /bible-scroll-area -->
 
-  <!-- Bottom Toolbar -->
+  <!-- Bottom Toolbar: 上一章 / 下一章，紧贴底部导航上方 -->
   <div class="bible-bottom-toolbar">
     <button class="bible-nav-btn" id="biblePrevBtn" onclick="goBibleChapter(-1)">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
       上一章
     </button>
-
-
     <button class="bible-nav-btn" id="bibleNextBtn" onclick="goBibleChapter(1)">
       下一章
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
     </button>
   </div>
 
-  <!-- Notes FAB -->
-  <button class="bible-fab" onclick="">
+  <!-- Notes FAB：fixed 定位在右下角，悬浮在翻章栏之上 -->
+  <button class="bible-fab" onclick="openBibleNoteSheet()">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
     笔记
+    <span id="bibleNoteDot" style="display:none;position:absolute;top:5px;right:5px;width:8px;height:8px;background:#e74c3c;border-radius:50%;border:1.5px solid #fff;"></span>
   </button>
 
-  <!-- hidden legacy ids for fullscreen compat -->
   <div id="biblePrevBtnBottom" style="display:none"></div>
   <div id="bibleNextBtnBottom" style="display:none"></div>
 </div>
@@ -2480,10 +2571,27 @@ const BIBLE_BOOKS=[
   {name:'约翰三书',abbr:'3JN',chapters:1},{name:'犹大书',abbr:'JUD',chapters:1},{name:'启示录',abbr:'REV',chapters:22}
 ];
 let bibleInitialized=false,bibleCollapsed=false;
-let currentBibleBookAbbr='JHN',currentBibleChapter=3;
+// Load saved progress or default to Genesis 1
+const _bibleProgress=JSON.parse(localStorage.getItem('bibleReadingProgress')||'{}');
+let currentBibleBookAbbr=_bibleProgress.book||'GEN',currentBibleChapter=_bibleProgress.chapter||1;
+// Bookmarks: [{book,chapter,verse,text,date}]
+let bibleBookmarks=JSON.parse(localStorage.getItem('bibleBookmarks')||'[]');
+// Notes: [{book,chapter,verse,note,date}]
+let bibleNotes=JSON.parse(localStorage.getItem('bibleNotes')||'[]');
+let bibleFontSize=parseInt(localStorage.getItem('bibleFontSize')||'17',10);
+let bibleFullscreen=false;
+function saveBibleProgress(){
+  localStorage.setItem('bibleReadingProgress',JSON.stringify({book:currentBibleBookAbbr,chapter:currentBibleChapter}));
+}
 function escapeHtml(str){return String(str).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
 function initBiblePage(){
   if(!document.getElementById('page-bible'))return;
+  // Restore night mode
+  if(localStorage.getItem('bibleNight')==='1'){
+    document.body.classList.add('bible-night');
+    const area=document.querySelector('.bible-reading-area');
+    if(area)area.classList.add('night');
+  }
   if(!bibleInitialized){
     bibleInitialized=true;
     populateBibleBookSelect();
@@ -2492,6 +2600,11 @@ function initBiblePage(){
   }else{
     syncBibleControls();
   }
+  // Apply saved font
+  const list=document.getElementById('bibleResultList');
+  if(list)list.style.fontSize=bibleFontSize+'px';
+  updateBibleBookmarkBtn();
+  updateBibleNoteIndicator();
 }
 function getSelectedBibleBook(){
   return getBibleBook(currentBibleBookAbbr);
@@ -2524,7 +2637,11 @@ function updateBibleHeader(){
   const title=document.getElementById('bibleCurrentTitle');
   if(title)title.textContent=`${book.name} ${currentBibleChapter} 章`;
   const lastRef=document.getElementById('bibleLastReadRef');
-  if(lastRef)lastRef.textContent=`${book.name} ${currentBibleChapter}:1`;
+  if(lastRef){
+    const saved=JSON.parse(localStorage.getItem('bibleReadingProgress')||'{}');
+    const savedBook=saved.book?getBibleBook(saved.book):book;
+    lastRef.textContent=`${savedBook.name} ${saved.chapter||currentBibleChapter}章`;
+  }
   const isFirst=book.abbr==='GEN'&&currentBibleChapter===1;
   const isLast=book.abbr==='REV'&&currentBibleChapter===book.chapters;
   ['biblePrevBtn','biblePrevBtnBottom'].forEach(id=>{const btn=document.getElementById(id);if(btn)btn.disabled=isFirst;});
@@ -2603,10 +2720,12 @@ function loadBibleChapter(){
   const book=getSelectedBibleBook();
   const chapter=currentBibleChapter;
   updateBibleHeader();
+  saveBibleProgress();
+  updateBibleBookmarkBtn();
   if(!list)return;
+  list.style.fontSize=bibleFontSize+'px';
   if(!window.LOCAL_BIBLE){
     list.innerHTML='<div class="bible-empty"><div class="spinner" style="margin:0 auto 8px;"></div>圣经数据加载中…</div>';
-    // 等待数据加载后自动渲染
     (window.BIBLE_LOAD_PROMISE||Promise.resolve()).then(()=>{
       if(window.LOCAL_BIBLE && Object.keys(window.LOCAL_BIBLE).length>0) loadBibleChapter();
     });
@@ -2614,6 +2733,9 @@ function loadBibleChapter(){
   }
   const data=getBibleChapterData(book.abbr,chapter);
   list.innerHTML=renderBibleLines(data.bookName,chapter,data.lines);
+  // scroll to top
+  const scrollArea=document.querySelector('.bible-scroll-area');
+  if(scrollArea)scrollArea.scrollTop=0;
 }
 function goBibleChapter(direction){
   const idx=getBibleBookIndex(currentBibleBookAbbr);
@@ -2673,24 +2795,222 @@ function openBibleSearchResult(bookCode,chapter){
   loadBibleChapter();
 }
 function adjustBibleFont(dir){
+  bibleFontSize=Math.max(12,Math.min(28,bibleFontSize+dir*2));
+  localStorage.setItem('bibleFontSize',String(bibleFontSize));
   const list=document.getElementById('bibleResultList');
-  if(!list)return;
-  const cur=parseFloat(getComputedStyle(list).fontSize)||16;
-  const next=Math.max(12,Math.min(22,cur+dir*1.5));
-  list.style.fontSize=next+'px';
+  if(list)list.style.fontSize=bibleFontSize+'px';
+  showToast(`字体大小 ${bibleFontSize}px`);
 }
 function toggleBibleNight(){
+  const isNight=document.body.classList.toggle('bible-night');
+  localStorage.setItem('bibleNight',isNight?'1':'0');
+  // Apply/remove .night class on reading area
   const area=document.querySelector('.bible-reading-area');
-  if(!area)return;
-  area.style.background=area.style.background==='#1a1a1a'?'#fff':'#1a1a1a';
-  area.style.color=area.style.color==='#ddd'?'':'#ddd';
+  if(area)area.classList.toggle('night',isNight);
+  // Update more menu button text if open
+  const menuBtn=document.querySelector('#bibleMoreMenu [data-action="night"]');
+  if(menuBtn)menuBtn.querySelector('span:last-child').textContent=isNight?'日间模式':'夜间模式';
+  // Update appbar colors
+  const appbar=document.querySelector('.bible-appbar');
+  if(appbar){
+    appbar.style.background=isNight?'#1c1c1e':'';
+    appbar.querySelectorAll('.bible-appbar-title,.bible-appbar-btn').forEach(el=>el.style.color=isNight?'#e8e3d8':'');
+  }
+  showToast(isNight?'🌙 夜间模式':'☀️ 日间模式');
+}
+
+/* ── FULLSCREEN ── */
+function toggleBibleFullscreen(){
+  bibleFullscreen=!bibleFullscreen;
+  document.body.classList.toggle('bible-fullscreen',bibleFullscreen);
+  localStorage.setItem('bibleFullscreen',bibleFullscreen?'1':'0');
+  const btn=document.getElementById('bibleFullscreenBtn');
+  if(btn){
+    btn.title=bibleFullscreen?'退出全屏':'全屏阅读';
+    btn.querySelector('span').textContent=bibleFullscreen?'退出':'全屏';
+    const svg=btn.querySelector('svg');
+    if(bibleFullscreen){
+      svg.innerHTML='<path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 0 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/>';
+    }else{
+      svg.innerHTML='<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>';
+    }
+  }
+  showToast(bibleFullscreen?'⛶ 全屏模式':'退出全屏');
+}
+
+/* ── BOOKMARKS ── */
+function updateBibleBookmarkBtn(){
+  const btn=document.getElementById('bibleBookmarkBtn');
+  if(!btn)return;
+  const isMarked=bibleBookmarks.some(b=>b.book===currentBibleBookAbbr&&b.chapter===currentBibleChapter);
+  const iconPath=isMarked
+    ?'<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="currentColor" stroke="currentColor"/>'
+    :'<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>';
+  btn.querySelector('svg').innerHTML=iconPath;
+  btn.querySelector('span').textContent=isMarked?'已收藏':'收藏';
+  btn.style.color=isMarked?'var(--sage)':'';
+}
+function toggleBibleBookmark(){
+  const book=getSelectedBibleBook();
+  const idx=bibleBookmarks.findIndex(b=>b.book===currentBibleBookAbbr&&b.chapter===currentBibleChapter);
+  if(idx>=0){
+    bibleBookmarks.splice(idx,1);
+    showToast('已取消收藏');
+  }else{
+    bibleBookmarks.unshift({book:currentBibleBookAbbr,chapter:currentBibleChapter,bookName:book.name,date:new Date().toLocaleDateString('zh-CN')});
+    if(bibleBookmarks.length>100)bibleBookmarks.pop();
+    showToast('✅ 已收藏');
+  }
+  localStorage.setItem('bibleBookmarks',JSON.stringify(bibleBookmarks));
+  updateBibleBookmarkBtn();
+}
+function openBibleBookmarksSheet(){
+  const sheet=document.createElement('div');
+  sheet.className='sheet active';sheet.id='bibleBookmarksSheet';
+  sheet.onclick=e=>{if(e.target===sheet)sheet.remove();};
+  const items=bibleBookmarks.length
+    ?bibleBookmarks.map((b,i)=>`
+      <div style="display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid #f0ede6;">
+        <div style="flex:1;cursor:pointer;" onclick="jumpToBibleBookmark('${b.book}',${b.chapter});document.getElementById('bibleBookmarksSheet').remove();">
+          <div style="font-size:15px;font-weight:600;color:var(--ink);">${b.bookName} ${b.chapter}章</div>
+          <div style="font-size:12px;color:var(--muted);">${b.date||''}</div>
+        </div>
+        <button onclick="removeBibleBookmark(${i});this.closest('div[style]').remove();" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:18px;padding:4px;">✕</button>
+      </div>`).join('')
+    :'<div style="text-align:center;padding:32px;color:#bbb;">暂无收藏<br><span style="font-size:13px;">阅读时点击收藏按钮添加</span></div>';
+  sheet.innerHTML=`<div class="sheet-inner">
+    <div class="sheet-title">📖 我的收藏<span class="sheet-close" onclick="document.getElementById('bibleBookmarksSheet').remove()">✕</span></div>
+    <div>${items}</div>
+  </div>`;
+  document.body.appendChild(sheet);
+}
+function jumpToBibleBookmark(book,chapter){
+  const scope=document.getElementById('bibleScopeSelect');
+  if(scope)scope.value='all';
+  populateBibleBookSelect();
+  setBibleState(book,chapter);
+  loadBibleChapter();
+}
+function removeBibleBookmark(idx){
+  bibleBookmarks.splice(idx,1);
+  localStorage.setItem('bibleBookmarks',JSON.stringify(bibleBookmarks));
+  updateBibleBookmarkBtn();
+}
+
+/* ── NOTES ── */
+function openBibleNoteSheet(){
+  const book=getSelectedBibleBook();
+  const key=`${currentBibleBookAbbr}:${currentBibleChapter}`;
+  const existing=bibleNotes.find(n=>n.key===key);
+  const sheet=document.createElement('div');
+  sheet.className='sheet active';sheet.id='bibleNoteSheet';
+  sheet.onclick=e=>{if(e.target===sheet)sheet.remove();};
+  sheet.innerHTML=`<div class="sheet-inner">
+    <div class="sheet-title">✏️ ${book.name} ${currentBibleChapter}章笔记
+      <span class="sheet-close" onclick="document.getElementById('bibleNoteSheet').remove()">✕</span>
+    </div>
+    <textarea id="bibleNoteText" placeholder="在这里记下你的感悟、祷告或领受…"
+      style="width:100%;min-height:180px;padding:12px;border:1.5px solid var(--stone);border-radius:14px;font-size:15px;font-family:'Noto Sans SC',sans-serif;resize:vertical;outline:none;line-height:1.7;">${existing?existing.note:''}</textarea>
+    <div style="display:flex;gap:8px;margin-top:12px;">
+      <button class="btn btn-gold" style="flex:1;justify-content:center;" onclick="saveBibleNote('${key}','${book.name}',${currentBibleChapter})">保存笔记</button>
+      ${existing?`<button class="btn btn-outline" onclick="deleteBibleNote('${key}');document.getElementById('bibleNoteSheet').remove();">删除</button>`:''}
+      <button class="btn btn-outline" onclick="document.getElementById('bibleNoteSheet').remove()">取消</button>
+    </div>
+    <div style="margin-top:16px;">
+      <div style="font-size:13px;color:var(--muted);font-weight:600;margin-bottom:8px;">📋 所有笔记</div>
+      ${bibleNotes.length?bibleNotes.map(n=>`
+        <div style="padding:10px 12px;background:#f9f8f5;border-radius:12px;margin-bottom:8px;cursor:pointer;" onclick="jumpToBibleBookmark('${n.book}',${n.chapter});document.getElementById('bibleNoteSheet').remove();">
+          <div style="font-size:13px;font-weight:600;color:var(--sage);">${n.bookName} ${n.chapter}章</div>
+          <div style="font-size:13px;color:var(--ink);margin-top:3px;line-height:1.5;">${n.note.slice(0,60)}${n.note.length>60?'…':''}</div>
+          <div style="font-size:11px;color:#bbb;margin-top:3px;">${n.date}</div>
+        </div>`).join(''):'<div style="color:#bbb;font-size:13px;padding:8px 0;">暂无笔记</div>'}
+    </div>
+  </div>`;
+  document.body.appendChild(sheet);
+  sheet.querySelector('#bibleNoteText').focus();
+}
+function saveBibleNote(key,bookName,chapter){
+  const text=document.getElementById('bibleNoteText')?.value.trim();
+  if(!text){showToast('请输入笔记内容');return;}
+  const idx=bibleNotes.findIndex(n=>n.key===key);
+  const entry={key,book:currentBibleBookAbbr,chapter,bookName,note:text,date:new Date().toLocaleDateString('zh-CN')};
+  if(idx>=0)bibleNotes[idx]=entry;
+  else bibleNotes.unshift(entry);
+  localStorage.setItem('bibleNotes',JSON.stringify(bibleNotes));
+  document.getElementById('bibleNoteSheet')?.remove();
+  showToast('✅ 笔记已保存');
+  // show note indicator dot
+  updateBibleNoteIndicator();
+}
+function deleteBibleNote(key){
+  bibleNotes=bibleNotes.filter(n=>n.key!==key);
+  localStorage.setItem('bibleNotes',JSON.stringify(bibleNotes));
+  showToast('笔记已删除');
+  updateBibleNoteIndicator();
+}
+function updateBibleNoteIndicator(){
+  const key=`${currentBibleBookAbbr}:${currentBibleChapter}`;
+  const hasNote=bibleNotes.some(n=>n.key===key);
+  const dot=document.getElementById('bibleNoteDot');
+  if(dot)dot.style.display=hasNote?'block':'none';
+}
+
+/* ── MORE MENU ── */
+function openBibleMoreMenu(){
+  const existing=document.getElementById('bibleMoreMenu');
+  if(existing){existing.remove();return;}
+  const isNight=document.body.classList.contains('bible-night');
+  const isFS=bibleFullscreen;
+  const menu=document.createElement('div');
+  menu.id='bibleMoreMenu';
+  menu.style.cssText='position:fixed;top:58px;right:12px;background:#fff;border-radius:18px;box-shadow:0 8px 32px rgba(0,0,0,.18);z-index:600;min-width:190px;overflow:hidden;animation:menuSlide .15s ease;';
+  menu.innerHTML=`<style>@keyframes menuSlide{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}</style>
+    <div style="padding:6px 0;">
+      <button data-action="night" onclick="toggleBibleNight();document.getElementById('bibleMoreMenu')?.remove();"
+        style="width:100%;display:flex;align-items:center;gap:10px;padding:14px 16px;background:none;border:none;cursor:pointer;font-family:inherit;font-size:14px;color:var(--ink);text-align:left;">
+        <span style="font-size:20px;width:24px;text-align:center;">${isNight?'☀️':'🌙'}</span>
+        <span>${isNight?'日间模式':'夜间模式'}</span>
+      </button>
+      <button onclick="toggleBibleFullscreen();document.getElementById('bibleMoreMenu')?.remove();"
+        style="width:100%;display:flex;align-items:center;gap:10px;padding:14px 16px;background:none;border:none;cursor:pointer;font-family:inherit;font-size:14px;color:var(--ink);text-align:left;">
+        <span style="font-size:20px;width:24px;text-align:center;">${isFS?'⊡':'⛶'}</span>
+        <span>${isFS?'退出全屏':'全屏阅读'}</span>
+      </button>
+      <button onclick="openBibleBookmarksSheet();document.getElementById('bibleMoreMenu')?.remove();"
+        style="width:100%;display:flex;align-items:center;gap:10px;padding:14px 16px;background:none;border:none;cursor:pointer;font-family:inherit;font-size:14px;color:var(--ink);text-align:left;">
+        <span style="font-size:20px;width:24px;text-align:center;">📖</span>
+        <span>所有收藏</span>
+      </button>
+      <div style="height:1px;background:#f0ede6;margin:2px 0;"></div>
+      <div style="padding:8px 16px 4px;font-size:11px;color:#bbb;font-weight:700;letter-spacing:.5px;">字体大小</div>
+      <div style="display:flex;align-items:center;gap:0;padding:4px 16px 14px;">
+        <button onclick="adjustBibleFont(-1);document.getElementById('bibleMenuFontSz').textContent=bibleFontSize;"
+          style="width:38px;height:38px;border:1.5px solid var(--stone);border-radius:10px 0 0 10px;background:#fff;cursor:pointer;font-size:16px;font-family:inherit;flex-shrink:0;">A</button>
+        <div style="padding:0 12px;font-size:14px;font-weight:600;color:var(--ink);border-top:1.5px solid var(--stone);border-bottom:1.5px solid var(--stone);height:38px;display:flex;align-items:center;min-width:40px;justify-content:center;" id="bibleMenuFontSz">${bibleFontSize}</div>
+        <button onclick="adjustBibleFont(1);document.getElementById('bibleMenuFontSz').textContent=bibleFontSize;"
+          style="width:38px;height:38px;border:1.5px solid var(--stone);border-radius:0 10px 10px 0;background:#fff;cursor:pointer;font-size:22px;font-family:inherit;flex-shrink:0;">A</button>
+      </div>
+    </div>`;
+  document.body.appendChild(menu);
+  setTimeout(()=>{
+    document.addEventListener('click',function h(e){
+      if(!menu.contains(e.target)&&!document.getElementById('bibleMoreBtn')?.contains(e.target)){menu.remove();}
+      document.removeEventListener('click',h);
+    });
+  },50);
 }
 
 function exitBibleFullscreen(){
-  document.body.classList.remove('bible-fullscreen-mode');
+  bibleFullscreen=false;
+  document.body.classList.remove('bible-fullscreen');
+  const btn=document.getElementById('bibleFullscreenBtn');
+  if(btn){
+    btn.querySelector('span').textContent='全屏';
+    btn.querySelector('svg').innerHTML='<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>';
+  }
 }
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'&&document.body.classList.contains('bible-fullscreen-mode'))exitBibleFullscreen();
+  if(e.key==='Escape'&&document.body.classList.contains('bible-fullscreen'))exitBibleFullscreen();
 });
 function toggleBible(){
   bibleCollapsed=!bibleCollapsed;
@@ -2715,6 +3035,8 @@ function showPage(p){
   }
   const bottomNav=document.querySelector('.bottom-nav');
   if(bottomNav)bottomNav.style.display=['worship-edit','member-edit'].includes(p)?'none':'flex';
+  // Exit bible fullscreen when leaving bible page
+  if(p!=='bible'&&bibleFullscreen)exitBibleFullscreen();
   if(p==='home')renderWeeklyPublic();
   if(p==='att'){renderAttList();setTimeout(initAttStickyTabs,80);}
   if(p==='members'){renderMemberList();setTimeout(initMemberStickyTabs,80);}
