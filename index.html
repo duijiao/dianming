@@ -4276,9 +4276,8 @@ function renderScheduleBlock(info,showEdit){
 
 // Get nearest upcoming date (within ±14 days) that falls on a given day-of-week
 function getNearestDateForDOW(dow){
+  // First try worshipData (has Sunday entries)
   const keys=Object.keys(worshipData).sort();
-  if(!keys.length)return null;
-  // Find closest date with matching DOW
   const now=new Date();
   let best=null,bestDiff=Infinity;
   keys.forEach(d=>{
@@ -4288,7 +4287,17 @@ function getNearestDateForDOW(dow){
       if(diff<bestDiff){bestDiff=diff;best=d;}
     }
   });
-  return best;
+  if(best)return best;
+  // Fallback: compute nearest calendar date with matching DOW (for Fri/Sat)
+  const today=new Date();
+  const todayDOW=today.getDay();
+  let diff=dow-todayDOW;
+  // Pick whichever direction is closer (±3 days)
+  if(diff>3)diff-=7;
+  if(diff<-3)diff+=7;
+  const nearest=new Date(today);
+  nearest.setDate(today.getDate()+diff);
+  return getLocalDateString(nearest);
 }
 
 function openScheduleEditor(editDOWParam){
