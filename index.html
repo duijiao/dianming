@@ -861,9 +861,124 @@ body.bible-fullscreen .bible-fab{
 .bible-nav-btn:active:not(:disabled){border-color:var(--sage);color:var(--sage);}
 .bible-nav-btn:disabled{opacity:.35;cursor:not-allowed;}
 
+/* ══ 聚会流程时间轴 ══ */
+.schedule-card{
+  background:#fff;border-radius:20px;margin:0 0 12px;
+  box-shadow:0 2px 12px rgba(0,0,0,.06);overflow:hidden;
+}
+.schedule-card-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px 10px;
+}
+.schedule-card-head-left{display:flex;align-items:center;gap:8px;}
+.schedule-head-icon{
+  width:30px;height:30px;border-radius:9px;flex-shrink:0;
+  background:linear-gradient(135deg,#2d8c52,#48c274);
+  display:flex;align-items:center;justify-content:center;
+}
+.schedule-head-icon svg{width:15px;height:15px;color:#fff;}
+.schedule-card-title{font-size:15px;font-weight:700;color:var(--ink);}
+.schedule-edit-btn{
+  font-size:12px;color:var(--sage);background:rgba(90,124,69,.08);
+  border:1px solid rgba(90,124,69,.25);border-radius:8px;
+  padding:4px 10px;cursor:pointer;white-space:nowrap;
+  font-family:'Noto Sans SC',sans-serif;
+}
+.schedule-timeline{padding:4px 16px 16px;}
+.schedule-item{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:8px 0;position:relative;
+}
+.schedule-item:not(:last-child)::after{
+  content:'';position:absolute;left:14px;top:32px;
+  width:2px;bottom:-8px;
+  background:linear-gradient(to bottom,var(--sage-light),transparent);
+}
+.schedule-dot-wrap{display:flex;flex-direction:column;align-items:center;flex-shrink:0;padding-top:2px;}
+.schedule-dot{
+  width:28px;height:28px;border-radius:50%;flex-shrink:0;
+  background:var(--gold-light);border:2px solid var(--sage-light);
+  display:flex;align-items:center;justify-content:center;
+}
+.schedule-dot svg{width:13px;height:13px;color:var(--sage);}
+.schedule-dot.active{background:var(--sage);border-color:var(--sage);}
+.schedule-dot.active svg{color:#fff;}
+.schedule-info{flex:1;padding-top:3px;}
+.schedule-time{font-size:12px;color:var(--muted);font-weight:600;margin-bottom:2px;}
+.schedule-title-text{font-size:14px;font-weight:700;color:var(--ink);}
+.schedule-note{font-size:12px;color:var(--muted);margin-top:2px;line-height:1.5;}
+.schedule-empty{padding:16px;text-align:center;color:#bbb;font-size:13px;}
+
+/* 编辑流程 Sheet */
+.sched-row{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 0;border-bottom:1px solid #f0ede6;
+}
+.sched-row:last-of-type{border-bottom:none;}
+.sched-drag{color:#ccc;cursor:grab;font-size:18px;flex-shrink:0;padding:0 2px;}
+.sched-time-input{width:72px;padding:6px 8px;border:1.5px solid rgba(0,0,0,.1);border-radius:8px;font-size:13px;font-family:inherit;outline:none;text-align:center;}
+.sched-time-input:focus{border-color:var(--sage);}
+.sched-title-input{flex:1;padding:6px 10px;border:1.5px solid rgba(0,0,0,.1);border-radius:8px;font-size:13px;font-family:inherit;outline:none;}
+.sched-title-input:focus{border-color:var(--sage);}
+.sched-note-input{flex:1;padding:6px 10px;border:1.5px solid rgba(0,0,0,.1);border-radius:8px;font-size:12px;font-family:inherit;outline:none;color:var(--muted);}
+.sched-note-input:focus{border-color:var(--sage);}
+.sched-del-btn{width:28px;height:28px;border-radius:50%;border:1.5px solid #fcc;background:#fff5f5;color:#e74c3c;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1;}
+
+/* ══ 二维码签到 ══ */
+.qr-sheet-inner{background:#fff;border-radius:24px 24px 0 0;padding:20px 16px 32px;width:100%;max-width:520px;max-height:92vh;overflow-y:auto;}
+.qr-tabs{display:flex;gap:0;border-bottom:1px solid var(--stone);margin-bottom:16px;}
+.qr-tab{flex:1;padding:9px 4px;border:none;background:none;font-family:'Noto Sans SC',sans-serif;font-size:13px;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);font-weight:500;}
+.qr-tab.active{border-bottom-color:var(--sage);color:var(--sage);font-weight:700;}
+.qr-member-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:4px 0;}
+.qr-member-card{display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 10px;background:#fafaf8;border-radius:16px;border:1px solid var(--stone);}
+.qr-member-name{font-size:13px;font-weight:600;color:var(--ink);text-align:center;}
+.qr-member-sub{font-size:11px;color:var(--muted);text-align:center;}
+.qr-member-card.checked{background:var(--present-bg);border-color:#a9dfbf;}
+.qr-member-card.checked .qr-member-name{color:var(--present);}
+/* 全场码 */
+.qr-unified-wrap{display:flex;flex-direction:column;align-items:center;gap:16px;padding:8px 0 16px;}
+.qr-unified-box{background:#fff;border:2px solid var(--stone);border-radius:20px;padding:20px;display:flex;flex-direction:column;align-items:center;gap:12px;box-shadow:0 4px 20px rgba(0,0,0,.08);}
+.qr-unified-title{font-family:'Noto Serif SC',serif;font-size:17px;font-weight:700;color:var(--ink);}
+.qr-unified-date{font-size:13px;color:var(--muted);}
+.qr-hint{font-size:12px;color:var(--muted);text-align:center;line-height:1.6;}
+/* 扫码确认全屏 */
+.qr-confirm-screen{position:fixed;inset:0;background:var(--sage);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;}
+.qr-confirm-icon{font-size:72px;margin-bottom:12px;}
+.qr-confirm-name{font-family:'Noto Serif SC',serif;font-size:28px;font-weight:700;color:#fff;margin-bottom:6px;}
+.qr-confirm-sub{font-size:15px;color:rgba(255,255,255,.8);margin-bottom:32px;}
+.qr-confirm-btn{background:#fff;color:var(--sage);border:none;border-radius:16px;padding:14px 40px;font-size:16px;font-weight:700;font-family:'Noto Sans SC',sans-serif;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,.15);}
+.qr-confirm-btn.cancel{background:rgba(255,255,255,.2);color:#fff;margin-top:12px;}
+.qr-already{background:rgba(255,255,255,.15);border-radius:12px;padding:10px 20px;color:rgba(255,255,255,.9);font-size:14px;margin-bottom:16px;}
+
 /* Night toolbar */
 body.bible-night .bible-bottom-toolbar{background:#1c1c1e;border-top-color:#333;}
 body.bible-night .bible-nav-btn{background:#2c2c2e;border-color:#444;color:#e8e3d8;}
+
+/* 字体大小滑动条 */
+.bible-font-slider-wrap{
+  flex:1;display:flex;align-items:center;gap:7px;
+  padding:0 4px;max-width:160px;
+}
+.bible-font-icon-sm,.bible-font-icon-lg{flex-shrink:0;color:var(--muted);}
+.bible-font-slider{
+  flex:1;-webkit-appearance:none;appearance:none;
+  height:4px;border-radius:4px;outline:none;cursor:pointer;
+  background:linear-gradient(to right,var(--sage) 0%,var(--sage) 50%,var(--stone) 50%,var(--stone) 100%);
+}
+.bible-font-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;
+  width:20px;height:20px;border-radius:50%;
+  background:#fff;border:2px solid var(--sage);
+  box-shadow:0 1px 6px rgba(0,0,0,.18);cursor:pointer;
+}
+.bible-font-slider::-moz-range-thumb{
+  width:20px;height:20px;border-radius:50%;
+  background:#fff;border:2px solid var(--sage);
+  box-shadow:0 1px 6px rgba(0,0,0,.18);cursor:pointer;
+}
+body.bible-night .bible-font-slider{background:linear-gradient(to right,var(--sage) 50%,#444 50%);}
+body.bible-night .bible-font-slider::-webkit-slider-thumb{background:#2c2c2e;border-color:var(--sage);}
+body.bible-night .bible-font-icon-sm,body.bible-night .bible-font-icon-lg{color:#888;}
 
 .bible-search-card{display:none!important;}
 .bible-fullscreen-exit{display:none!important;}
@@ -1554,6 +1669,14 @@ body.bible-fullscreen .bible-fab{
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
       上一章
     </button>
+    <!-- 字体大小拖动条 -->
+    <div class="bible-font-slider-wrap">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="bible-font-icon-sm"><text x="4" y="18" font-size="13" font-family="sans-serif" fill="currentColor" stroke="none">A</text></svg>
+      <input type="range" id="bibleFontSlider" class="bible-font-slider"
+        min="12" max="28" step="1" value="17"
+        oninput="onBibleFontSlider(this.value)">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="bible-font-icon-lg"><text x="2" y="19" font-size="18" font-family="sans-serif" fill="currentColor" stroke="none">A</text></svg>
+    </div>
     <button class="bible-nav-btn" id="bibleNextBtn" onclick="goBibleChapter(1)">
       下一章
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
@@ -1977,7 +2100,7 @@ let attFilter='all', attGroupFilter='all', memberFilter='all', reportTab='month'
 let expandedFamilyGroups=new Set();
 let editingMemberId=null, insertAfterIdx=null;
 let allAttendance={}; // cache: {date: Set<member_id>}
-let currentUser=JSON.parse(sessionStorage.getItem('churchCurrentUser')||'{"role":"guest","label":"游客模式"}');
+let currentUser=JSON.parse(localStorage.getItem('churchCurrentUser')||'{"role":"guest","label":"游客模式"}');
 let isAdmin=currentUser.role==='admin';
 let worshipData=JSON.parse(localStorage.getItem('churchWorshipData')||JSON.stringify(DEFAULT_WORSHIP_DATA));
 let selectedWorshipDate='';
@@ -2449,7 +2572,7 @@ function doLogin(){
   const p=document.getElementById('loginPass').value;
   if((u===ADMIN.user&&p===ADMIN.pass)||(u==='admin'&&p==='123456')||(u==='1'&&p==='123')){
     currentUser={role:'admin',label:'管理员'};
-    sessionStorage.setItem('churchCurrentUser',JSON.stringify(currentUser));
+    localStorage.setItem('churchCurrentUser',JSON.stringify(currentUser));
     closeAdminLogin();
     updateAdminUI();
     return;
@@ -2457,12 +2580,12 @@ function doLogin(){
   const normal=NORMAL_ACCOUNTS[u];
   if(normal&&p===normal.pass){
     currentUser={role:normal.role,label:normal.label,user:u};
-    sessionStorage.setItem('churchCurrentUser',JSON.stringify(currentUser));
+    localStorage.setItem('churchCurrentUser',JSON.stringify(currentUser));
     closeAdminLogin();
     updateAdminUI();
   }else{document.getElementById('loginErr').style.display='block';}
 }
-function doLogout(){sessionStorage.removeItem('churchCurrentUser');currentUser={role:'guest',label:'游客模式'};isAdmin=false;updateAdminUI();showToast('已回到游客模式');}
+function doLogout(){localStorage.removeItem('churchCurrentUser');currentUser={role:'guest',label:'游客模式'};isAdmin=false;updateAdminUI();showToast('已回到游客模式');}
 function handleMyPage(){
   if(currentUser.role==='guest'){openAdminLogin();return;}
   if(isAdmin)showPage('settings');
@@ -2611,6 +2734,7 @@ function initBiblePage(){
   // Apply saved font
   const list=document.getElementById('bibleResultList');
   if(list)list.style.fontSize=bibleFontSize+'px';
+  syncBibleFontSlider();
   updateBibleBookmarkBtn();
   updateBibleNoteIndicator();
 }
@@ -2807,7 +2931,26 @@ function adjustBibleFont(dir){
   localStorage.setItem('bibleFontSize',String(bibleFontSize));
   const list=document.getElementById('bibleResultList');
   if(list)list.style.fontSize=bibleFontSize+'px';
+  syncBibleFontSlider();
   showToast(`字体大小 ${bibleFontSize}px`);
+}
+function onBibleFontSlider(val){
+  bibleFontSize=parseInt(val,10);
+  localStorage.setItem('bibleFontSize',String(bibleFontSize));
+  const list=document.getElementById('bibleResultList');
+  if(list)list.style.fontSize=bibleFontSize+'px';
+  syncBibleFontSlider();
+}
+function syncBibleFontSlider(){
+  const slider=document.getElementById('bibleFontSlider');
+  if(!slider)return;
+  slider.value=bibleFontSize;
+  // Update gradient fill to reflect current position
+  const pct=((bibleFontSize-12)/(28-12))*100;
+  slider.style.background=`linear-gradient(to right,var(--sage) ${pct}%,var(--stone) ${pct}%)`;
+  // menu font size label if open
+  const lbl=document.getElementById('bibleMenuFontSz');
+  if(lbl)lbl.textContent=bibleFontSize;
 }
 function toggleBibleNight(){
   const isNight=document.body.classList.toggle('bible-night');
@@ -3286,6 +3429,9 @@ function renderWeeklyPublic(){
       <div class="card-title">敬拜诗歌</div>
       <div class="song-list">${info.songs.map(s=>`<span class="song-chip">${s}</span>`).join('')}</div>
     </div>`:''}
+
+    <!-- 聚会流程时间轴 -->
+    ${renderScheduleBlock(info,canManageWorship())}
   `;
   // 绑定滑动 dot 指示器
   setTimeout(initSwipeDots,50);
@@ -3827,6 +3973,156 @@ function renderWorshipPage(){
       </button>`}
     </div>`:`<div style="padding:32px 0;text-align:center;color:#bbb;font-size:14px;">本周暂无敬拜排班</div>`}`;
 }
+// ══ 聚会流程时间轴 ════════════════════════════════
+const DEFAULT_SCHEDULE=[
+  {time:'09:30',title:'会众聚集',note:''},
+  {time:'09:45',title:'敬拜赞美',note:''},
+  {time:'10:15',title:'祷告',note:''},
+  {time:'10:25',title:'证道',note:''},
+  {time:'11:10',title:'回应诗歌',note:''},
+  {time:'11:20',title:'奉献·散会',note:''},
+];
+const SCHEDULE_ICONS={
+  '会众聚集':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+  '敬拜赞美':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
+  '祷告':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>',
+  '证道':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>',
+  '回应诗歌':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
+  '奉献·散会':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>',
+};
+const DEFAULT_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+
+function getScheduleForDate(date){
+  const d=worshipData[date];
+  if(!d)return null;
+  if(d.schedule&&d.schedule.length)return d.schedule;
+  return null;
+}
+
+function getNowTimeStr(){
+  const n=new Date();
+  return `${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`;
+}
+
+function renderScheduleBlock(info,showEdit){
+  if(showEdit===undefined)showEdit=canManageWorship();
+  const sched=getScheduleForDate(selectedWorshipDate);
+  const canEdit=showEdit;
+  const now=getNowTimeStr();
+  // Find current active item
+  let activeIdx=-1;
+  if(sched){
+    const today=new Date().toISOString().slice(0,10);
+    if(selectedWorshipDate===today){
+      for(let i=sched.length-1;i>=0;i--){
+        if(now>=sched[i].time){activeIdx=i;break;}
+      }
+    }
+  }
+  return `<div class="schedule-card">
+    <div class="schedule-card-head">
+      <div class="schedule-card-head-left">
+        <div class="schedule-head-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <span class="schedule-card-title">聚会流程</span>
+      </div>
+      ${canEdit?`<button class="schedule-edit-btn" onclick="openScheduleEditor()">编辑流程</button>`:''}
+    </div>
+    ${sched&&sched.length?`
+    <div class="schedule-timeline">
+      ${sched.map((item,i)=>{
+        const isActive=i===activeIdx;
+        const icon=SCHEDULE_ICONS[item.title]||DEFAULT_ICON;
+        return `<div class="schedule-item">
+          <div class="schedule-dot-wrap">
+            <div class="schedule-dot${isActive?' active':''}">${icon}</div>
+          </div>
+          <div class="schedule-info">
+            <div class="schedule-time">${item.time}</div>
+            <div class="schedule-title-text"${isActive?' style="color:var(--sage);"':''}>${escapeHtml(item.title)}${isActive?' <span style="font-size:11px;background:var(--gold-light);color:var(--sage);border-radius:6px;padding:1px 6px;font-weight:600;">进行中</span>':''}</div>
+            ${item.note?`<div class="schedule-note">${escapeHtml(item.note)}</div>`:''}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`:`
+    <div class="schedule-empty">
+      ${canEdit?'暂无流程 · 点击"编辑流程"添加':'暂无聚会流程'}
+    </div>`}
+  </div>`;
+}
+
+function openScheduleEditor(){
+  if(!requireWorshipManager())return;
+  const existing=getScheduleForDate(selectedWorshipDate)||JSON.parse(JSON.stringify(DEFAULT_SCHEDULE));
+  const sheet=document.createElement('div');
+  sheet.className='sheet';sheet.id='scheduleEditorSheet';
+  sheet.onclick=e=>{if(e.target===sheet)sheet.remove();};
+  function rows(){
+    return (sheet.querySelectorAll('.sched-row-data')||[]);
+  }
+  function getItems(){
+    return [...rows()].map(r=>({
+      time:r.querySelector('.sched-time-input').value.trim(),
+      title:r.querySelector('.sched-title-input').value.trim(),
+      note:r.querySelector('.sched-note-input').value.trim(),
+    })).filter(x=>x.title);
+  }
+  function addRow(item,container){
+    const div=document.createElement('div');
+    div.className='sched-row sched-row-data';
+    div.draggable=true;
+    div.innerHTML=`
+      <span class="sched-drag">☰</span>
+      <input class="sched-time-input" type="time" value="${item.time||''}">
+      <input class="sched-title-input" placeholder="环节名称" value="${escapeHtml(item.title||'')}">
+      <input class="sched-note-input" placeholder="备注（选填）" value="${escapeHtml(item.note||'')}">
+      <button class="sched-del-btn" title="删除">×</button>`;
+    div.querySelector('.sched-del-btn').onclick=()=>div.remove();
+    // drag-to-reorder
+    div.addEventListener('dragstart',e=>{e.dataTransfer.effectAllowed='move';window._dragSchedRow=div;});
+    div.addEventListener('dragover',e=>{e.preventDefault();const r=div.getBoundingClientRect();const mid=r.top+r.height/2;div.parentNode.insertBefore(window._dragSchedRow,e.clientY<mid?div:div.nextSibling);});
+    container.appendChild(div);
+  }
+  sheet.innerHTML=`<div class="sheet-inner" style="max-height:88vh;overflow-y:auto;">
+    <div class="sheet-title">编辑聚会流程
+      <span class="sheet-close" onclick="document.getElementById('scheduleEditorSheet').remove()">✕</span>
+    </div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">${selectedWorshipDate} · 拖动 ☰ 可调整顺序</p>
+    <div id="schedRowContainer"></div>
+    <button onclick="(function(){const c=document.getElementById('schedRowContainer');window._schedAddRow({time:'',title:'',note:''},c);})()"
+      style="width:100%;margin:8px 0 16px;padding:9px;border:1.5px dashed var(--stone);background:none;border-radius:10px;font-size:13px;color:var(--muted);cursor:pointer;font-family:inherit;">
+      + 添加环节
+    </button>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-outline btn-sm" onclick="(function(){const c=document.getElementById('schedRowContainer');c.innerHTML='';${JSON.stringify(DEFAULT_SCHEDULE)}.forEach(x=>window._schedAddRow(x,c));})()" style="font-size:12px;">重置默认</button>
+      <button class="btn btn-gold" style="flex:1;" onclick="saveScheduleEditor()">保存流程</button>
+    </div>
+  </div>`;
+  document.body.appendChild(sheet);
+  window._schedAddRow=addRow;
+  const container=sheet.querySelector('#schedRowContainer');
+  existing.forEach(item=>addRow(item,container));
+  requestAnimationFrame(()=>sheet.classList.add('active'));
+}
+
+function saveScheduleEditor(){
+  const sheet=document.getElementById('scheduleEditorSheet');
+  if(!sheet)return;
+  const items=[...sheet.querySelectorAll('.sched-row-data')].map(r=>({
+    time:r.querySelector('.sched-time-input').value.trim(),
+    title:r.querySelector('.sched-title-input').value.trim(),
+    note:r.querySelector('.sched-note-input').value.trim(),
+  })).filter(x=>x.title);
+  if(!worshipData[selectedWorshipDate])
+    worshipData[selectedWorshipDate]={sermon:'待填写',host:'待填写',prayer:'待填写',songs:[],notices:[],roles:[]};
+  worshipData[selectedWorshipDate].schedule=items;
+  localStorage.setItem('churchWorshipData',JSON.stringify(worshipData));
+  renderWorshipPage();
+  sheet.remove();
+  showToast('✅ 聚会流程已保存');
+}
+
 function selectWorshipDate(date){
   selectedWorshipDate=date;
   renderWeeklyPublic();
@@ -4086,13 +4382,15 @@ function openSongLibraryForManage(){
 function saveWorshipManage(){
   if(!requireWorshipManager())return;
   const roles=WORSHIP_ROLES.map(role=>({role,persons:[...(worshipEditRoles[role]||[])].filter(Boolean)})).filter(r=>r.persons.length);
+  const existingSched=(worshipData[selectedWorshipDate]||{}).schedule||[];
   worshipData[selectedWorshipDate]={
     sermon:document.getElementById('wmSermon').value.trim()||'待填写',
     host:document.getElementById('wmHost').value.trim()||'待填写',
     prayer:document.getElementById('wmPrayer').value.trim()||'待填写',
     songs:document.getElementById('wmSongs').value.split(/[\/,，、]/).map(x=>x.trim()).filter(Boolean),
     notices:document.getElementById('wmNotices').value.split(/\n+/).map(x=>x.trim()).filter(Boolean),
-    roles
+    roles,
+    schedule:existingSched,
   };
   localStorage.setItem('churchWorshipData',JSON.stringify(worshipData));
   renderWeeklyPublic();
@@ -4142,13 +4440,15 @@ function returnFromWorshipEdit(){
 function saveWorshipEdit(){
   if(!requireWorshipManager())return;
   const roles=WORSHIP_ROLES.map(role=>({role,persons:[...(worshipEditRoles[role]||[])].filter(Boolean)})).filter(r=>r.persons.length);
+  const existingSched=(worshipData[selectedWorshipDate]||{}).schedule||[];
   worshipData[selectedWorshipDate]={
     sermon:document.getElementById('wSermon').value||'待填写',
     host:document.getElementById('wHost').value||'待填写',
     prayer:document.getElementById('wPrayer').value||'待填写',
     songs:document.getElementById('wSongs').value.split(/[\/,，、]/).map(x=>x.trim()).filter(Boolean),
     notices:document.getElementById('wNotices').value.split(/\n+/).map(x=>x.trim()).filter(Boolean),
-    roles
+    roles,
+    schedule:existingSched,
   };
   localStorage.setItem('churchWorshipData',JSON.stringify(worshipData));
   renderWeeklyPublic();
@@ -4526,6 +4826,9 @@ async function bootApp(showToastOnMissing=false){
     renderWorshipPage();
     const cloudUrl=(localStorage.getItem('churchWorshipCloudUrl')||'').trim();
     if(cloudUrl)await loadWorshipFromCloud(false);
+    // 处理二维码扫码跳转
+    const _qrp=new URLSearchParams(location.search);
+    if(_qrp.get('qrcheck')||_qrp.get('qrself'))handleQrHash();
   }catch(e){
     setSyncErr();
     console.error(e);
@@ -4662,6 +4965,7 @@ function setAttFilter(f,el){
 }
 function openAttMoreMenu(){
   const items=[
+    {label:'📱 二维码签到',fn:()=>openQrCheckinSheet()},
     {label:'＋ 添加会众',fn:()=>openNewMemberSheet(false)},
     {label:'📋 签到汇总',fn:()=>openAbsentSheet()},
     {label:'🗑 清空签到',fn:()=>markAll(false)},
@@ -4681,6 +4985,364 @@ function openAttMoreMenu(){
     sheet.querySelector(`[data-idx="${i}"]`).onclick=()=>{sheet.remove();it.fn();};
   });
 }
+// ══ 二维码签到 ════════════════════════════════════════
+const QR_BASE_URL='https://duijiao.github.io/dianming/';
+function qrToken(date,memberId){return btoa(`${date}:${memberId}`);}
+function qrUrl(date,memberId){
+  return `${QR_BASE_URL}?qrcheck=${encodeURIComponent(qrToken(date,memberId))}`;
+}
+function qrUnifiedUrl(date){
+  return `${QR_BASE_URL}?qrself=${encodeURIComponent(btoa(date))}`;
+}
+
+function loadQrLib(cb){
+  if(window.QRCode){cb();return;}
+  const s=document.createElement('script');
+  s.src='https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+  s.onload=cb;
+  document.head.appendChild(s);
+}
+
+function makeQrDiv(url,size){
+  const wrap=document.createElement('div');
+  wrap.style.cssText=`width:${size}px;height:${size}px;flex-shrink:0;`;
+  new QRCode(wrap,{text:url,width:size,height:size,colorDark:'#1a1a1a',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
+  return wrap;
+}
+
+function openQrCheckinSheet(){
+  const sheet=document.createElement('div');
+  sheet.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:flex;align-items:flex-end;justify-content:center;';
+  sheet.innerHTML=`<div class="qr-sheet-inner">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+      <div style="font-family:'Noto Serif SC',serif;font-size:17px;font-weight:700;">📱 二维码签到</div>
+      <span style="font-size:24px;cursor:pointer;color:var(--muted);" onclick="this.closest('[style]').remove()">✕</span>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px;">${attDate} · 成员扫码后自助打卡</div>
+    <div class="qr-tabs">
+      <button class="qr-tab active" id="qrTabUnified" onclick="switchQrTab('unified')">统一签到码</button>
+      <button class="qr-tab" id="qrTabPersonal" onclick="switchQrTab('personal')">个人签到码</button>
+    </div>
+    <div id="qrTabContent"></div>
+  </div>`;
+  sheet.onclick=e=>{if(e.target===sheet)sheet.remove();};
+  document.body.appendChild(sheet);
+  window._qrSheet=sheet;
+  loadQrLib(()=>renderQrTab('unified'));
+}
+
+function switchQrTab(tab){
+  document.getElementById('qrTabUnified').classList.toggle('active',tab==='unified');
+  document.getElementById('qrTabPersonal').classList.toggle('active',tab==='personal');
+  renderQrTab(tab);
+}
+
+function renderQrTab(tab){
+  const el=document.getElementById('qrTabContent');
+  if(!el)return;
+  if(tab==='unified'){
+    el.innerHTML='';
+    const wrap=document.createElement('div');
+    wrap.className='qr-unified-wrap';
+    const box=document.createElement('div');
+    box.className='qr-unified-box';
+    const title=document.createElement('div');
+    title.className='qr-unified-title';
+    title.textContent='扫码自助签到';
+    const dateEl=document.createElement('div');
+    dateEl.className='qr-unified-date';
+    dateEl.textContent=attDate;
+    const qrDiv=makeQrDiv(qrUnifiedUrl(attDate),200);
+    box.appendChild(qrDiv);
+    box.appendChild(title);
+    box.appendChild(dateEl);
+    wrap.appendChild(box);
+    const hint=document.createElement('div');
+    hint.className='qr-hint';
+    hint.innerHTML='成员扫码后，在手机上选择自己的名字完成签到<br>请将此二维码投影或展示给全场成员';
+    wrap.appendChild(hint);
+    el.appendChild(wrap);
+  }else{
+    el.innerHTML='<div class="qr-member-grid" id="qrMemberGrid"></div>';
+    const grid=document.getElementById('qrMemberGrid');
+    members.forEach(m=>{
+      const isPresent=attendance.has(m.id);
+      const card=document.createElement('div');
+      card.className=`qr-member-card${isPresent?' checked':''}`;
+      const nameEl=document.createElement('div');
+      nameEl.className='qr-member-name';
+      nameEl.textContent=m.name;
+      const sub=document.createElement('div');
+      sub.className='qr-member-sub';
+      sub.textContent=isPresent?'✓ 已签到':'未签到';
+      const qrDiv=makeQrDiv(qrUrl(attDate,m.id),110);
+      card.appendChild(qrDiv);
+      card.appendChild(nameEl);
+      card.appendChild(sub);
+      grid.appendChild(card);
+    });
+  }
+}
+
+// ── 扫码后的确认界面 ──────────────────────────────────
+function handleQrHash(){
+  const params=new URLSearchParams(location.search);
+  const checkToken=params.get('qrcheck');
+  const selfToken=params.get('qrself');
+  if(checkToken){
+    try{
+      const [date,memberIdStr]=atob(checkToken).split(':');
+      const memberId=parseInt(memberIdStr,10);
+      showQrPersonalConfirm(date,memberId);
+    }catch(_){showToast('无效的签到码');}
+    history.replaceState(null,'',location.pathname);
+  }else if(selfToken){
+    try{
+      const date=atob(selfToken);
+      showQrSelfSelect(date);
+    }catch(_){showToast('无效的签到码');}
+    history.replaceState(null,'',location.pathname);
+  }
+}
+
+function showQrPersonalConfirm(date,memberId){
+  const member=members.find(m=>m.id===memberId);
+  if(!member){showToast('未找到该成员');return;}
+  const isAlready=attendance.has(memberId)&&date===attDate;
+  const screen=document.createElement('div');
+  screen.className='qr-confirm-screen';
+  screen.innerHTML=`
+    <div class="qr-confirm-icon">${isAlready?'✅':'🙏'}</div>
+    <div class="qr-confirm-name">${member.name}</div>
+    ${isAlready?`<div class="qr-already">今日已签到</div>`:''}
+    <div class="qr-confirm-sub">${date} 主日聚会签到</div>
+    ${!isAlready?`<button class="qr-confirm-btn" onclick="doQrCheckin(${memberId},'${date}',this.closest('.qr-confirm-screen'))">✓ 确认签到</button>`:''}
+    <button class="qr-confirm-btn cancel" onclick="this.closest('.qr-confirm-screen').remove()">返回</button>`;
+  document.body.appendChild(screen);
+}
+
+async function doQrCheckin(memberId,date,screen){
+  const member=members.find(m=>m.id===memberId);
+  if(!member)return;
+  // 乐观更新本地
+  if(date===attDate)attendance.add(memberId);
+  // 更新 UI
+  const btn=screen.querySelector('.qr-confirm-btn:not(.cancel)');
+  if(btn){btn.textContent='正在保存…';btn.disabled=true;}
+  try{
+    await sbPost('attendance',{member_id:memberId,date},'resolution=ignore-duplicates,return=minimal');
+    screen.innerHTML=`
+      <div class="qr-confirm-icon">✅</div>
+      <div class="qr-confirm-name">${member.name}</div>
+      <div class="qr-confirm-sub">签到成功！愿主赐福你</div>
+      <button class="qr-confirm-btn cancel" onclick="this.closest('.qr-confirm-screen').remove()">关闭</button>`;
+    if(date===attDate)renderAttList();
+  }catch(e){
+    if(date===attDate)attendance.delete(memberId);
+    screen.innerHTML=`
+      <div class="qr-confirm-icon">❌</div>
+      <div class="qr-confirm-name">签到失败</div>
+      <div class="qr-confirm-sub">请检查网络或联系管理员</div>
+      <button class="qr-confirm-btn cancel" onclick="this.closest('.qr-confirm-screen').remove()">关闭</button>`;
+  }
+}
+
+function showQrSelfSelect(date){
+  const sheet=document.createElement('div');
+  sheet.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:flex-end;justify-content:center;';
+  sheet.innerHTML=`<div style="background:#fff;border-radius:24px 24px 0 0;padding:24px 20px 40px;width:100%;max-width:480px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+      <div style="font-family:'Noto Serif SC',serif;font-size:18px;font-weight:700;">扫码签到</div>
+      <span style="font-size:24px;cursor:pointer;color:var(--muted);" onclick="this.closest('[style*=fixed]').remove()">✕</span>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:20px;">${date} 主日聚会</div>
+    <div style="position:relative;margin-bottom:8px;">
+      <input id="qrNameInput" type="text" placeholder="请输入您的全名"
+        style="width:100%;box-sizing:border-box;padding:14px 16px;font-size:16px;border:2px solid var(--stone);border-radius:14px;font-family:'Noto Sans SC',sans-serif;outline:none;color:var(--ink);"
+        oninput="onQrNameInput(this,'${date}')"
+        onkeydown="if(event.key==='Enter')submitQrName('${date}')">
+    </div>
+    <div id="qrNameHint" style="font-size:12px;color:var(--muted);min-height:18px;margin-bottom:16px;padding:0 2px;"></div>
+    <button id="qrNameSubmitBtn" onclick="submitQrName('${date}')"
+      style="width:100%;padding:14px;background:var(--sage);color:#fff;border:none;border-radius:14px;font-size:16px;font-weight:700;font-family:'Noto Sans SC',sans-serif;cursor:pointer;">
+      确认签到
+    </button>
+  </div>`;
+  sheet.onclick=e=>{if(e.target===sheet)sheet.remove();};
+  document.body.appendChild(sheet);
+  window._qrSelfSheet=sheet;
+  window._qrSelfDate=date;
+  setTimeout(()=>document.getElementById('qrNameInput')?.focus(),200);
+}
+
+function onQrNameInput(input,date){
+  const val=input.value.trim();
+  const hint=document.getElementById('qrNameHint');
+  const btn=document.getElementById('qrNameSubmitBtn');
+  if(!val){hint.textContent='';btn.style.opacity='0.5';return;}
+  btn.style.opacity='1';
+  // 精确匹配
+  const exact=members.find(m=>m.name===val);
+  if(exact){
+    const isPresent=attendance.has(exact.id);
+    if(isPresent){
+      hint.innerHTML=`<span style="color:var(--present);">✓ ${exact.name} 今日已签到</span>`;
+    }else{
+      hint.innerHTML=`<span style="color:var(--present);">✓ 找到：${exact.name}</span>`;
+    }
+    return;
+  }
+  // 模糊匹配（名字包含输入）
+  const partials=members.filter(m=>m.name.includes(val)||val.includes(m.name.slice(0,1)));
+  if(partials.length>0&&partials.length<=5){
+    hint.innerHTML=`<span style="color:#e67e22;">请输入完整全名，例如：${partials.map(m=>`<b>${m.name}</b>`).join('、')}</span>`;
+  }else{
+    hint.innerHTML=`<span style="color:var(--muted);">未在名单中找到，请确认姓名拼写</span>`;
+  }
+}
+
+async function submitQrName(date){
+  const input=document.getElementById('qrNameInput');
+  if(!input)return;
+  const val=input.value.trim();
+  if(!val)return;
+
+  // 精确匹配
+  const exact=members.find(m=>m.name===val);
+  if(exact){
+    if(window._qrSelfSheet)window._qrSelfSheet.remove();
+    if(attendance.has(exact.id)){
+      // 已签到
+      const screen=document.createElement('div');
+      screen.className='qr-confirm-screen';
+      screen.innerHTML=`
+        <div class="qr-confirm-icon">✅</div>
+        <div class="qr-confirm-name">${exact.name}</div>
+        <div class="qr-already">今日已签到</div>
+        <div class="qr-confirm-sub">感谢你今天来到聚会</div>
+        <button class="qr-confirm-btn cancel" onclick="this.closest('.qr-confirm-screen').remove()">关闭</button>`;
+      document.body.appendChild(screen);
+      return;
+    }
+    await doQrSelfCheckinByMember(exact,date);
+    return;
+  }
+
+  // 模糊匹配提醒输入全名
+  const partials=members.filter(m=>m.name.includes(val)||val.includes(m.name.slice(0,1)));
+  if(partials.length>0){
+    showQrDialog({
+      icon:'✏️',
+      title:'请输入完整全名',
+      body:`在名单中找到相似姓名：<br><b style="color:var(--sage);">${partials.map(m=>m.name).join('、')}</b><br><br>请在输入框中输入完整全名后再确认签到。`,
+      confirmText:'好的',
+      confirmFn:()=>{
+        document.getElementById('qrNameInput')?.focus();
+      },
+      cancelText:null,
+    });
+    return;
+  }
+
+  // 完全不在名单
+  showQrDialog({
+    icon:'🙏',
+    title:'未找到该姓名',
+    body:`「${val}」不在当前名单中。<br><br>请问您是<b>第一次</b>来到本教会吗？`,
+    confirmText:'是，第一次来',
+    confirmFn:()=>handleQrFirstTimer(val,date),
+    cancelText:'不是，我在名单中',
+    cancelFn:()=>showQrDialog({
+      icon:'📋',
+      title:'请确认姓名',
+      body:`请检查您输入的名字是否正确，<br>或联系管理员确认名单中的姓名拼写。<br><br>也可以尝试输入名字的其他写法。`,
+      confirmText:'重新输入',
+      confirmFn:()=>{
+        document.getElementById('qrNameInput')?.focus();
+        document.getElementById('qrNameInput').select();
+      },
+      cancelText:null,
+    }),
+  });
+}
+
+function showQrDialog({icon,title,body,confirmText,confirmFn,cancelText,cancelFn}){
+  // 关闭已有弹窗
+  document.querySelectorAll('.qr-dialog-overlay').forEach(el=>el.remove());
+  const overlay=document.createElement('div');
+  overlay.className='qr-dialog-overlay';
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:10000;display:flex;align-items:center;justify-content:center;padding:24px;';
+  overlay.innerHTML=`<div style="background:#fff;border-radius:24px;padding:28px 22px 22px;width:100%;max-width:340px;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.18);">
+    <div style="font-size:44px;margin-bottom:12px;">${icon}</div>
+    <div style="font-family:'Noto Serif SC',serif;font-size:17px;font-weight:700;color:var(--ink);margin-bottom:10px;">${title}</div>
+    <div style="font-size:14px;color:#555;line-height:1.7;margin-bottom:22px;">${body}</div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button style="padding:13px;background:var(--sage);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;font-family:'Noto Sans SC',sans-serif;cursor:pointer;"
+        onclick="(function(){document.querySelectorAll('.qr-dialog-overlay').forEach(el=>el.remove());(${confirmFn.toString()})();})()">
+        ${confirmText}
+      </button>
+      ${cancelText?`<button style="padding:12px;background:var(--parchment);color:var(--ink);border:none;border-radius:12px;font-size:14px;font-family:'Noto Sans SC',sans-serif;cursor:pointer;"
+        onclick="(function(){document.querySelectorAll('.qr-dialog-overlay').forEach(el=>el.remove());(${cancelFn?cancelFn.toString():'()=>{}'})(  );})()">
+        ${cancelText}
+      </button>`:''}
+    </div>
+  </div>`;
+  document.body.appendChild(overlay);
+}
+
+async function handleQrFirstTimer(name,date){
+  showQrDialog({
+    icon:'✍️',
+    title:`欢迎 ${name}！`,
+    body:`我们将把您的名字添加到会众名单，<br>并完成今日签到。<br><br>姓名：<b>${name}</b>`,
+    confirmText:'确认添加并签到',
+    confirmFn:async()=>{
+      try{
+        // 添加到 members
+        const newMember={name,group:'访客',phone:'',notes:'扫码自助添加',baptized:false};
+        const res=await sbPost('members',newMember,'select=id');
+        const newId=res&&res[0]&&res[0].id;
+        if(newId){
+          newMember.id=newId;
+          members.push(newMember);
+          // 签到
+          await sbPost('attendance',{member_id:newId,date},'resolution=ignore-duplicates,return=minimal');
+          if(date===attDate){attendance.add(newId);renderAttList();}
+        }
+        const screen=document.createElement('div');
+        screen.className='qr-confirm-screen';
+        screen.innerHTML=`
+          <div class="qr-confirm-icon">🎉</div>
+          <div class="qr-confirm-name">${name}</div>
+          <div class="qr-confirm-sub">欢迎第一次来到聚会！<br>签到成功，愿主赐福你</div>
+          <button class="qr-confirm-btn cancel" onclick="this.closest('.qr-confirm-screen').remove()">关闭</button>`;
+        document.body.appendChild(screen);
+      }catch(e){
+        showQrDialog({icon:'❌',title:'添加失败',body:'请检查网络或联系管理员。',confirmText:'关闭',confirmFn:()=>{},cancelText:null});
+      }
+    },
+    cancelText:'取消',
+    cancelFn:()=>{document.getElementById('qrNameInput')?.focus();},
+  });
+}
+
+async function doQrSelfCheckinByMember(member,date){
+  try{
+    await sbPost('attendance',{member_id:member.id,date},'resolution=ignore-duplicates,return=minimal');
+    if(date===attDate){attendance.add(member.id);renderAttList();}
+    const screen=document.createElement('div');
+    screen.className='qr-confirm-screen';
+    screen.innerHTML=`
+      <div class="qr-confirm-icon">✅</div>
+      <div class="qr-confirm-name">${member.name}</div>
+      <div class="qr-confirm-sub">签到成功！愿主赐福你</div>
+      <button class="qr-confirm-btn cancel" onclick="this.closest('.qr-confirm-screen').remove()">关闭</button>`;
+    document.body.appendChild(screen);
+  }catch(e){
+    showQrDialog({icon:'❌',title:'签到失败',body:'请检查网络或联系管理员。',confirmText:'关闭',confirmFn:()=>{},cancelText:null});
+  }
+}
+
 function openAttFilterSheet(){
   // just a visual trigger — you can expand this later
   showToast('筛选功能开发中');
