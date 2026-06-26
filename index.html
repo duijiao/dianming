@@ -1065,7 +1065,10 @@ body.bible-fullscreen .bible-fab{
 /* HOME HEADER — replaced by .home-appbar */
 .home-header{display:none;}
 
-/* ── BUTTON UPDATES ── */
+/* 聚会类型切换器 今天徽章 */
+.mt-today-badge{font-size:10px;background:rgba(255,255,255,.3);border-radius:8px;padding:1px 6px;margin-left:2px;}
+
+
 .btn-gold{background:var(--sage);color:white;}
 .btn-gold:active{background:var(--sage-dark);}
 .btn-blue{background:var(--sage);color:white;}
@@ -1669,14 +1672,7 @@ body.bible-fullscreen .bible-fab{
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
       上一章
     </button>
-    <!-- 字体大小拖动条 -->
-    <div class="bible-font-slider-wrap">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="bible-font-icon-sm"><text x="4" y="18" font-size="13" font-family="sans-serif" fill="currentColor" stroke="none">A</text></svg>
-      <input type="range" id="bibleFontSlider" class="bible-font-slider"
-        min="12" max="28" step="1" value="17"
-        oninput="onBibleFontSlider(this.value)">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="bible-font-icon-lg"><text x="2" y="19" font-size="18" font-family="sans-serif" fill="currentColor" stroke="none">A</text></svg>
-    </div>
+    <div style="flex:1;"></div>
     <button class="bible-nav-btn" id="bibleNextBtn" onclick="goBibleChapter(1)">
       下一章
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
@@ -1712,6 +1708,22 @@ body.bible-fullscreen .bible-fab{
         <button class="btn btn-outline" onclick="clearSupabaseSettings()">清空配置</button>
       </div>
       <div class="cloud-note">也可以直接编辑脚本顶部的 <code>DEFAULT_SB_URL</code> 和 <code>DEFAULT_SB_KEY</code>。</div>
+    </div>
+    <div class="card">
+      <div class="card-title">字体大小</div>
+      <div style="display:flex;align-items:center;gap:12px;padding:4px 0;">
+        <button onclick="adjustBibleFont(-1);updateSettingsFontDisplay();"
+          style="width:40px;height:40px;border:1.5px solid var(--stone);border-radius:10px;background:#fff;cursor:pointer;font-size:14px;font-weight:700;font-family:inherit;flex-shrink:0;">A−</button>
+        <div style="flex:1;position:relative;">
+          <input type="range" id="settingsFontSlider" min="12" max="28" step="1" value="17"
+            oninput="onBibleFontSlider(this.value);updateSettingsFontDisplay();"
+            style="width:100%;-webkit-appearance:none;appearance:none;height:4px;border-radius:4px;outline:none;cursor:pointer;background:linear-gradient(to right,var(--sage) 50%,var(--stone) 50%);">
+        </div>
+        <button onclick="adjustBibleFont(1);updateSettingsFontDisplay();"
+          style="width:40px;height:40px;border:1.5px solid var(--stone);border-radius:10px;background:#fff;cursor:pointer;font-size:16px;font-weight:700;font-family:inherit;flex-shrink:0;">A＋</button>
+        <div id="settingsFontLabel" style="min-width:36px;text-align:right;font-size:14px;font-weight:600;color:var(--sage);">17px</div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-top:8px;">调整圣经阅读页的文字大小</div>
     </div>
     <div class="card">
       <div class="card-title">系统信息</div>
@@ -2159,7 +2171,14 @@ const REMOTE_SETTING_MAP={
   churchRoleCandidatePools:'role_candidate_pools',
   churchWorshipCloudUrl:'worship_cloud_url',
   churchDinnerSettings:'dinner_settings',
-  churchRotaSettings:'rota_settings'
+  churchRotaSettings:'rota_settings',
+  // 各聚会类型信息（周五/周六）
+  churchMtData_dow5:'mt_data_dow5',
+  churchMtData_dow6:'mt_data_dow6',
+  // 各聚会类型流程时间轴
+  churchScheduleDOW_0:'schedule_dow0',
+  churchScheduleDOW_5:'schedule_dow5',
+  churchScheduleDOW_6:'schedule_dow6'
 };
 let suspendRemoteSettingSync=false;
 function buildSbHeaders(prefer='return=representation'){
@@ -2389,6 +2408,18 @@ async function ensureRemoteSettingDefaults(remote){
   if(!Object.prototype.hasOwnProperty.call(remote,'rota_settings')&&Object.keys(localRota).length)missing.push({key:'rota_settings',value:localRota});
   const cloudUrl=(localStorage.getItem('churchWorshipCloudUrl')||'').trim();
   if(cloudUrl&&!Object.prototype.hasOwnProperty.call(remote,'worship_cloud_url'))missing.push({key:'worship_cloud_url',value:cloudUrl});
+  // 各聚会类型信息
+  [5,6].forEach(dow=>{
+    const k='mt_data_dow'+dow;
+    const v=getMtData(dow);
+    if(!Object.prototype.hasOwnProperty.call(remote,k)&&v)missing.push({key:k,value:v});
+  });
+  // 各聚会类型流程
+  [0,5,6].forEach(dow=>{
+    const k='schedule_dow'+dow;
+    let v=null;try{v=JSON.parse(localStorage.getItem('churchScheduleDOW_'+dow)||'null');}catch(_){}
+    if(!Object.prototype.hasOwnProperty.call(remote,k)&&v&&v.length)missing.push({key:k,value:v});
+  });
   if(missing.length)await sbUpsert('app_settings',missing,'key','resolution=merge-duplicates,return=minimal');
 }
 async function loadRemoteSettings(){
@@ -2419,6 +2450,16 @@ async function loadRemoteSettings(){
   // 轮值（祷告/主理）
   const remoteRota=readRemoteSetting(remote,'rota_settings',{});
   if(remoteRota&&Object.keys(remoteRota).length)writeLocalCache('churchRotaSettings',remoteRota);
+  // 各聚会类型信息（周五/周六）
+  [5,6].forEach(dow=>{
+    const v=readRemoteSetting(remote,'mt_data_dow'+dow,null);
+    if(v)writeLocalCache('churchMtData_dow'+dow,v);
+  });
+  // 各聚会类型流程时间轴
+  [0,5,6].forEach(dow=>{
+    const v=readRemoteSetting(remote,'schedule_dow'+dow,null);
+    if(v&&Array.isArray(v)&&v.length)writeLocalCache('churchScheduleDOW_'+dow,v);
+  });
   suspendRemoteSettingSync=true;
   try{
     if(remoteCloudUrl)localStorage.setItem('churchWorshipCloudUrl',remoteCloudUrl);
@@ -2942,15 +2983,19 @@ function onBibleFontSlider(val){
   syncBibleFontSlider();
 }
 function syncBibleFontSlider(){
-  const slider=document.getElementById('bibleFontSlider');
-  if(!slider)return;
-  slider.value=bibleFontSize;
-  // Update gradient fill to reflect current position
   const pct=((bibleFontSize-12)/(28-12))*100;
-  slider.style.background=`linear-gradient(to right,var(--sage) ${pct}%,var(--stone) ${pct}%)`;
-  // menu font size label if open
+  const gradient=`linear-gradient(to right,var(--sage) ${pct}%,var(--stone) ${pct}%)`;
+  const slider=document.getElementById('bibleFontSlider');
+  if(slider){slider.value=bibleFontSize;slider.style.background=gradient;}
+  const settSlider=document.getElementById('settingsFontSlider');
+  if(settSlider){settSlider.value=bibleFontSize;settSlider.style.background=gradient;}
   const lbl=document.getElementById('bibleMenuFontSz');
   if(lbl)lbl.textContent=bibleFontSize;
+}
+function updateSettingsFontDisplay(){
+  const lbl=document.getElementById('settingsFontLabel');
+  if(lbl)lbl.textContent=bibleFontSize+'px';
+  syncBibleFontSlider();
 }
 function toggleBibleNight(){
   const isNight=document.body.classList.toggle('bible-night');
@@ -3188,14 +3233,14 @@ function showPage(p){
   if(bottomNav)bottomNav.style.display=['worship-edit','member-edit'].includes(p)?'none':'flex';
   // Exit bible fullscreen when leaving bible page
   if(p!=='bible'&&bibleFullscreen)exitBibleFullscreen();
-  if(p==='home')renderWeeklyPublic();
+  if(p==='home'){renderWeeklyPublic();}
   if(p==='att'){renderAttList();setTimeout(initAttStickyTabs,80);}
   if(p==='members'){renderMemberList();setTimeout(initMemberStickyTabs,80);}
   if(p==='report')initReport();
   if(p==='worship')renderWorshipPage();
   if(p==='worship-edit')fillWorshipEditPage();
   if(p==='bible')initBiblePage();
-  if(p==='settings')document.getElementById('settingTotal').textContent=members.length;
+  if(p==='settings'){document.getElementById('settingTotal').textContent=members.length;updateSettingsFontDisplay();}
 }
 
 // ══ PUBLIC / WORSHIP ═════════════════════════════
@@ -3259,20 +3304,20 @@ function getTodayVerse(){
 function renderWeeklyPublic(){
   const el=document.getElementById('weeklyPublicContent');
   if(!el)return;
-  const info=getWeeklyInfo();
+
   const dailyVerse=getTodayVerse();
+  const mt=MEETING_TYPES.find(t=>t.dow===homeScheduleDOW)||MEETING_TYPES[0];
 
-  const prayerVal=info.prayer||'待填写';
-  const isPrayerPending=(prayerVal==='待填写'||prayerVal==='待完善');
+  // 当前显示的聚会日期和信息
+  const d=getHomeMtDate();
+  const info=getMtInfoForDate(homeScheduleDOW,d);
 
-  // 聚会日期格式
-  const d=selectedWorshipDate||today;
   const [y,m,dy]=d.split('-');
   const weekDays=['周日','周一','周二','周三','周四','周五','周六'];
   const wday=weekDays[new Date(d+'T00:00:00').getDay()]||'';
   const dateStr=`${y}年${m}月${dy}日（${wday}）`;
 
-  // 更新顶部用户标签（首页 + 签到页 + 会众页）
+  // 更新顶部用户标签
   const appbarDateEl=document.getElementById('appbarDateLabel');
   if(appbarDateEl)appbarDateEl.textContent=currentUser.label||'游客模式';
   const attLbl=document.getElementById('attAppbarUserLabel');
@@ -3280,36 +3325,33 @@ function renderWeeklyPublic(){
   const membersLbl=document.getElementById('membersAppbarUserLabel');
   if(membersLbl)membersLbl.textContent=currentUser.label||'游客模式';
 
-  // 公告文本（取第一条非空公告）
   const validNotices=(info.notices||[]).filter(n=>n&&n!=='暂无通告');
-  const firstNotice=validNotices[0]||'本周公告待更新';
 
-  // 岗位图标映射（SVG inline）
-  const roleIcons={
-    '主领':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><path d="M9.5 9.5c.3-.8 1.2-1 2-.8.9.3 1.4 1.3 1 2.1-.3.6-1 .9-1.5 1.4-.4.3-.5.7-.5 1.1M12 17v.01"/></svg>',
-    '伴唱':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 18.5a6 6 0 1 0 0-13 6 6 0 0 0 0 13z"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12" y2="17.01"/></svg>',
-    '键盘':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M6 11h.01M10 11h.01M14 11h.01M18 11h.01M6 15h12"/></svg>',
-    '吉他':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>',
-    '贝斯':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
-    '鼓':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="11" rx="10" ry="4"/><path d="M2 11v8c0 2.2 4.5 4 10 4s10-1.8 10-4v-8"/></svg>',
-    '教歌':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
-    '敬拜':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>',
-  };
-  const defaultRoleIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>';
+  // ── 聚会类型切换 tabs ──
+  const todayDOW=new Date().getDay();
+  const typeSwitcher=`
+    <div style="display:flex;gap:8px;padding:0 0 14px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;">
+      ${MEETING_TYPES.map(t=>{
+        const isActive=homeScheduleDOW===t.dow;
+        const isToday=todayDOW===t.dow;
+        return `<button onclick="homeScheduleDOW=${t.dow};renderWeeklyPublic();"
+          style="display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:20px;
+          border:2px solid ${isActive?t.color:'rgba(0,0,0,.1)'};
+          background:${isActive?t.gradient:'#fff'};
+          color:${isActive?'#fff':'#666'};
+          font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;
+          white-space:nowrap;flex-shrink:0;transition:all .15s;
+          box-shadow:${isActive?'0 3px 12px rgba(0,0,0,.18)':'none'};">
+          <span style="font-size:15px;">${t.icon}</span>
+          <span>${t.label}</span>
+          ${isToday?'<span style="font-size:10px;background:rgba(255,255,255,.3);border-radius:8px;padding:1px 6px;margin-left:2px;">今天</span>':''}
+        </button>`;
+      }).join('')}
+    </div>`;
 
-  const worshipRows=(info.roles||[]).map(r=>`
-    <div class="worship-role-row">
-      <span class="worship-role-row-icon">${roleIcons[r.role]||defaultRoleIcon}</span>
-      <span class="worship-role-row-label">${r.role}</span>
-      <span class="worship-role-row-names">${(r.persons||[]).join(' / ')||'待填写'}</span>
-    </div>`).join('');
-
-  // 是否游客
-  const isGuest=currentUser.role==='guest';
-
-  el.innerHTML=`
-    <!-- 英雄卡（始终显示） -->
-    <div class="hero-banner">
+  // ── 英雄横幅（原版样式：日历图标 + 教堂剪影 + CSS class） ──
+  const heroBanner=`
+    <div class="hero-banner" style="background:${mt.gradient};">
       <div class="hero-banner-top">
         <div class="hero-banner-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
@@ -3346,61 +3388,45 @@ function renderWeeklyPublic(){
             </div>`
         }
       </div>
-    </div>
-    <!-- 今日金句 -->
+    </div>`;
+
+  // ── 今日金句 ──
+  const verseCard=`
     <div class="verse-card">
       <div class="verse-card-head">
-        <div class="verse-card-head-left">
-          <span class="verse-head-icon">✦</span>
-          <span class="verse-card-label">今日金句</span>
-        </div>
-        <div class="verse-card-actions">
-          <button class="verse-action-btn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>收藏
-          </button>
-          <button class="verse-action-btn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>分享
-          </button>
-        </div>
+        <div class="verse-card-head-left"><span class="verse-head-icon">✦</span><span class="verse-card-label">今日金句</span></div>
       </div>
       <div class="verse-quote-mark">"</div>
       <div class="verse-text">${dailyVerse.text}</div>
       <div class="verse-ref">—— ${dailyVerse.ref}</div>
-    </div>
+    </div>`;
 
-    <!-- 聚会信息卡片 -->
-    <div class="meeting-card" style="margin-bottom:12px;box-sizing:border-box;">
+  // ── 聚会信息卡（内容随类型变化）──
+  let infoCard='';
+  if(homeScheduleDOW===0){
+    // 主日：证道 + 祷告 + 主理
+    infoCard=`
+    <div class="meeting-card" style="margin-bottom:12px;">
       <div class="meeting-card-head">
-        <div class="meeting-card-head-left">
-          <span class="meeting-head-icon">📅</span>
-          <span class="meeting-card-title">聚会信息</span>
-        </div>
+        <div class="meeting-card-head-left"><span class="meeting-head-icon">📅</span><span class="meeting-card-title">主日信息</span></div>
         <div style="display:flex;align-items:center;gap:8px;">
           <span class="meeting-date">${dateStr}</span>
           ${isLoggedIn()?`<button class="role-rota-edit-btn" onclick="openMeetingSetupSheet()">✏️ 设置</button>`:''}
         </div>
       </div>
-      <!-- 证道 — 单行突出展示 -->
       <div class="meeting-sermon-row">
         <div class="meeting-sermon-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/>
-            <line x1="8" y1="23" x2="16" y2="23"/>
-          </svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
         </div>
         <div class="meeting-sermon-info">
           <div class="meeting-sermon-label">本周证道</div>
           <div class="meeting-sermon-name">${info.sermon||'待填写'}</div>
         </div>
       </div>
-      <!-- 祷告 + 主理 — 两列并排 -->
       <div class="meeting-roles-grid">
         <div class="meeting-role-item">
           <div class="meeting-role-icon" style="background:linear-gradient(135deg,#2d7dd2,#1a5ca8);">
-            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-              <path d="M18 20V10M12 20V4M6 20v-6"/>
-            </svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
           </div>
           <div class="meeting-role-info">
             <div class="meeting-role-label">本周祷告</div>
@@ -3409,9 +3435,7 @@ function renderWeeklyPublic(){
         </div>
         <div class="meeting-role-item">
           <div class="meeting-role-icon" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9);">
-            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-              <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-            </svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
           </div>
           <div class="meeting-role-info">
             <div class="meeting-role-label">本周主理</div>
@@ -3419,22 +3443,119 @@ function renderWeeklyPublic(){
           </div>
         </div>
       </div>
-    </div>
+    </div>`;
+  } else {
+    // 周五/周六：简洁信息卡（带领 + 内容）
+    const mtColor=mt.color;
+    const leadLabel=homeScheduleDOW===5?'带领':'带领';
+    const contentLabel=homeScheduleDOW===5?'分享内容':'查经内容';
+    const mtGlobalData=getMtData(homeScheduleDOW)||{};
+    const leader=mtGlobalData.leader||'待填写';
+    const contentTitle=mtGlobalData.contentTitle||'待填写';
+    const mtNotices=(mtGlobalData.notices||[]).filter(n=>n&&n!=='暂无通告');
+    infoCard=`
+    <div style="background:#fff;border-radius:22px;padding:18px;margin-bottom:12px;box-shadow:0 3px 16px rgba(0,0,0,.07);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:18px;">${mt.icon}</span>
+          <span style="font-size:16px;font-weight:700;color:var(--ink);">${mt.label}信息</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:13px;font-weight:600;color:${mtColor};">${dateStr}</span>
+          ${isLoggedIn()?`<button class="role-rota-edit-btn" onclick="openMtSetupSheet(${homeScheduleDOW})">✏️ 设置</button>`:''}
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div style="background:#f6f6f4;border-radius:16px;padding:14px;display:flex;align-items:center;gap:12px;">
+          <div style="width:40px;height:40px;border-radius:12px;flex-shrink:0;background:${mt.gradient};display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.18);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="width:20px;height:20px;"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          </div>
+          <div>
+            <div style="font-size:12px;color:#999;font-weight:500;margin-bottom:3px;">${leadLabel}</div>
+            <div style="font-size:17px;font-weight:700;color:var(--ink);">${leader}</div>
+          </div>
+        </div>
+        <div style="background:#f6f6f4;border-radius:16px;padding:14px;display:flex;align-items:center;gap:12px;">
+          <div style="width:40px;height:40px;border-radius:12px;flex-shrink:0;background:${mt.gradient};display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.18);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="width:20px;height:20px;"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:12px;color:#999;font-weight:500;margin-bottom:3px;">${contentLabel}</div>
+            <div style="font-size:15px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${contentTitle}</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }
 
-    <!-- 晚餐服侍（替换原敬拜组位置） -->
-    ${renderDinnerCard(d)}
+  // ── 晚餐服侍（仅主日显示） ──
+  const dinnerSection=homeScheduleDOW===0?renderDinnerCard(d):'';
 
-    ${(info.songs||[]).filter(s=>s&&s!=='待填写').length?`
+  // ── 敬拜诗歌（仅主日显示） ──
+  const songsSection=(homeScheduleDOW===0&&(info.songs||[]).filter(s=>s&&s!=='待填写').length)?`
     <div class="card">
       <div class="card-title">敬拜诗歌</div>
       <div class="song-list">${info.songs.map(s=>`<span class="song-chip">${s}</span>`).join('')}</div>
-    </div>`:''}
+    </div>`:'';
 
-    <!-- 聚会流程时间轴 -->
+  el.innerHTML=`
+    <!-- 聚会类型切换器 -->
+    ${typeSwitcher}
+    <!-- 英雄横幅 -->
+    ${heroBanner}
+    <!-- 今日金句 -->
+    ${verseCard}
+    <!-- 聚会信息 -->
+    ${infoCard}
+    <!-- 晚餐服侍 -->
+    ${dinnerSection}
+    <!-- 诗歌 -->
+    ${songsSection}
+    <!-- 聚会流程 -->
     ${renderScheduleBlock(info,canManageWorship())}
   `;
-  // 绑定滑动 dot 指示器
   setTimeout(initSwipeDots,50);
+}
+
+// ══ 周五/周六 聚会信息设置 Sheet ══
+function openMtSetupSheet(dow){
+  if(!isLoggedIn()){showToast('请先登录');return;}
+  const mt=MEETING_TYPES.find(t=>t.dow===dow)||MEETING_TYPES[1];
+  const existing=getMtData(dow)||{leader:'',contentTitle:'',notices:[]};
+  const sheet=document.createElement('div');
+  sheet.className='sheet active';sheet.id='mtSetupSheet';
+  sheet.onclick=e=>{if(e.target===sheet)sheet.remove();};
+  const leadLabel=dow===5?'带领':'带领';
+  const contentLabel=dow===5?'分享内容':'查经内容';
+  sheet.innerHTML=`<div class="sheet-inner">
+    <div class="sheet-title">${mt.icon} ${mt.label}信息设置<span class="sheet-close" onclick="document.getElementById('mtSetupSheet').remove()">✕</span></div>
+    <div class="form-group">
+      <label class="form-label">${leadLabel}</label>
+      <input class="form-input" id="mtLeaderInput" value="${existing.leader||''}" placeholder="姓名">
+    </div>
+    <div class="form-group">
+      <label class="form-label">${contentLabel}</label>
+      <input class="form-input" id="mtContentInput" value="${existing.contentTitle||''}" placeholder="内容标题">
+    </div>
+    <div class="form-group">
+      <label class="form-label">通告（每行一条）</label>
+      <textarea class="form-input" id="mtNoticesInput" rows="3" placeholder="每行一条通告">${(existing.notices||[]).join('\n')}</textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="document.getElementById('mtSetupSheet').remove()">取消</button>
+      <button class="btn btn-gold" onclick="saveMtSetupSheet(${dow})">保存</button>
+    </div>
+  </div>`;
+  document.body.appendChild(sheet);
+}
+function saveMtSetupSheet(dow){
+  const leader=(document.getElementById('mtLeaderInput')?.value||'').trim();
+  const contentTitle=(document.getElementById('mtContentInput')?.value||'').trim();
+  const notices=(document.getElementById('mtNoticesInput')?.value||'').split(/\n+/).map(x=>x.trim()).filter(Boolean);
+  saveMtData(dow,{leader,contentTitle,notices});
+  document.getElementById('mtSetupSheet')?.remove();
+  renderWeeklyPublic();
+  showToast('✅ 已保存');
 }
 
 // ══ DINNER SERVICE (晚餐服侍) ════════════════════════
@@ -3974,14 +4095,32 @@ function renderWorshipPage(){
     </div>`:`<div style="padding:32px 0;text-align:center;color:#bbb;font-size:14px;">本周暂无敬拜排班</div>`}`;
 }
 // ══ 聚会流程时间轴 ════════════════════════════════
-const DEFAULT_SCHEDULE=[
-  {time:'09:30',title:'会众聚集',note:''},
-  {time:'09:45',title:'敬拜赞美',note:''},
-  {time:'10:15',title:'祷告',note:''},
-  {time:'10:25',title:'证道',note:''},
-  {time:'11:10',title:'回应诗歌',note:''},
-  {time:'11:20',title:'奉献·散会',note:''},
-];
+// 各聚会日程默认模板（按星期几：0=日，5=五，6=六）
+const DEFAULT_SCHEDULE_BY_DOW={
+  0:[ // 主日
+    {time:'09:30',title:'会众聚集',note:''},
+    {time:'09:45',title:'敬拜赞美',note:''},
+    {time:'10:15',title:'祷告',note:''},
+    {time:'10:25',title:'证道',note:''},
+    {time:'11:10',title:'回应诗歌',note:''},
+    {time:'11:20',title:'奉献·散会',note:''},
+  ],
+  5:[ // 周五祷告会
+    {time:'19:30',title:'会众聚集',note:''},
+    {time:'19:40',title:'敬拜赞美',note:''},
+    {time:'20:00',title:'祷告分享',note:''},
+    {time:'20:30',title:'查经分享',note:''},
+    {time:'21:00',title:'代祷·散会',note:''},
+  ],
+  6:[ // 周六小组
+    {time:'15:00',title:'会众聚集',note:''},
+    {time:'15:10',title:'敬拜赞美',note:''},
+    {time:'15:30',title:'小组查经',note:''},
+    {time:'16:15',title:'分享祷告',note:''},
+    {time:'16:45',title:'散会',note:''},
+  ],
+};
+const DEFAULT_SCHEDULE=DEFAULT_SCHEDULE_BY_DOW[0];
 const SCHEDULE_ICONS={
   '会众聚集':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
   '敬拜赞美':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
@@ -3989,14 +4128,31 @@ const SCHEDULE_ICONS={
   '证道':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>',
   '回应诗歌':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
   '奉献·散会':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>',
+  '祷告分享':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>',
+  '查经分享':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>',
+  '代祷·散会':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>',
+  '小组查经':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>',
+  '分享祷告':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>',
+  '散会':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>',
 };
 const DEFAULT_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
 
 function getScheduleForDate(date){
   const d=worshipData[date];
-  if(!d)return null;
-  if(d.schedule&&d.schedule.length)return d.schedule;
+  if(d&&d.schedule&&d.schedule.length)return d.schedule;
+  // Fall back to day-of-week global schedule if set
+  const dow=new Date(date+'T00:00:00').getDay();
+  const globalKey='churchScheduleDOW_'+dow;
+  try{
+    const s=JSON.parse(localStorage.getItem(globalKey)||'null');
+    if(s&&s.length)return s;
+  }catch(_){}
+  // Use built-in default for known days (Fri=5, Sat=6, Sun=0)
+  if(DEFAULT_SCHEDULE_BY_DOW[dow])return DEFAULT_SCHEDULE_BY_DOW[dow];
   return null;
+}
+function saveScheduleForDOW(dow,items){
+  localStorage.setItem('churchScheduleDOW_'+dow,JSON.stringify(items));
 }
 
 function getNowTimeStr(){
@@ -4004,30 +4160,91 @@ function getNowTimeStr(){
   return `${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`;
 }
 
+// Meeting type definitions
+// ══ 多时间聚会系统 ══
+const MEETING_TYPES=[
+  {dow:0,label:'主日聚会',icon:'⛪',color:'#2d8c52',gradient:'linear-gradient(135deg,#2d8c52,#48c274)',
+   roles:['证道','祷告','主理'],sermonLabel:'证道',hasSongs:true,hasRoles:true},
+  {dow:5,label:'周五祷告会',icon:'🙏',color:'#2d7dd2',gradient:'linear-gradient(135deg,#2d7dd2,#1a5ca8)',
+   roles:['带领','分享'],sermonLabel:'带领',hasSongs:false,hasRoles:false},
+  {dow:6,label:'周六小组',icon:'👥',color:'#7c3aed',gradient:'linear-gradient(135deg,#7c3aed,#5b21b6)',
+   roles:['带领','查经'],sermonLabel:'带领',hasSongs:false,hasRoles:false},
+];
+// localStorage 键：每种聚会类型有独立的排班数据
+function getMtDataKey(dow){return 'churchMtData_dow'+dow;}
+function getMtData(dow){
+  try{return JSON.parse(localStorage.getItem(getMtDataKey(dow))||'null');}catch(_){return null;}
+}
+function saveMtData(dow,data){localStorage.setItem(getMtDataKey(dow),JSON.stringify(data));}
+// 获取指定DOW、日期的信息（优先worshipData日期条目，回退DOW全局，再回退空）
+function getMtInfoForDate(dow,dateStr){
+  // 先看 worshipData 里有没有这个日期
+  if(worshipData[dateStr])return worshipData[dateStr];
+  // 再看 DOW 全局数据
+  const d=getMtData(dow);
+  if(d)return d;
+  return {sermon:'待填写',host:'待填写',prayer:'待填写',songs:[],notices:[],roles:[]};
+}
+function getTodayMeetingDOW(){
+  const dow=new Date().getDay();
+  if([0,5,6].includes(dow))return dow;
+  return 0; // 非聚会日默认显示主日
+}
+// State: which DOW is being viewed on home page
+// 默认始终显示主日聚会，不跟随今日星期
+let homeScheduleDOW=0;
+// 获取当前 homeScheduleDOW 对应的最近日期
+function getHomeMtDate(){
+  // For Sun use selectedWorshipDate logic; for Fri/Sat find nearest
+  if(homeScheduleDOW===0)return selectedWorshipDate||nearestWorshipDate()||today;
+  return getNearestDateForDOW(homeScheduleDOW)||today;
+}
+
 function renderScheduleBlock(info,showEdit){
   if(showEdit===undefined)showEdit=canManageWorship();
-  const sched=getScheduleForDate(selectedWorshipDate);
+
+  // schedDOW: from worship page use date's dow; from home page always follow homeScheduleDOW
+  let schedDOW, sched;
+  if(selectedWorshipDate && homeScheduleDOW===0){
+    // 敬拜页 / 主日：用选中的具体日期
+    schedDOW=new Date(selectedWorshipDate+'T00:00:00').getDay();
+    sched=getScheduleForDate(selectedWorshipDate);
+  } else {
+    // 首页切换聚会类型时，跟随 homeScheduleDOW
+    schedDOW=homeScheduleDOW;
+    const matchDate=homeScheduleDOW===0
+      ?(selectedWorshipDate||getNearestDateForDOW(0))
+      :getNearestDateForDOW(schedDOW);
+    sched=matchDate?getScheduleForDate(matchDate):null;
+  }
+
+  const mt=MEETING_TYPES.find(t=>t.dow===schedDOW)||MEETING_TYPES[0];
+
   const canEdit=showEdit;
   const now=getNowTimeStr();
-  // Find current active item
   let activeIdx=-1;
   if(sched){
-    const today=new Date().toISOString().slice(0,10);
-    if(selectedWorshipDate===today){
+    const isToday=(selectedWorshipDate===new Date().toISOString().slice(0,10))
+      ||(schedDOW===new Date().getDay()&&!selectedWorshipDate);
+    if(isToday){
       for(let i=sched.length-1;i>=0;i--){
         if(now>=sched[i].time){activeIdx=i;break;}
       }
     }
   }
+
+  // Dot color follows meeting type
+  const dotActiveStyle=`background:${mt.color};border-color:${mt.color};`;
+
   return `<div class="schedule-card">
     <div class="schedule-card-head">
       <div class="schedule-card-head-left">
-        <div class="schedule-head-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <div class="schedule-head-icon" style="background:${mt.gradient};">
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         </div>
-        <span class="schedule-card-title">聚会流程</span>
+        <span class="schedule-card-title">聚会流程 · ${mt.label}</span>
       </div>
-      ${canEdit?`<button class="schedule-edit-btn" onclick="openScheduleEditor()">编辑流程</button>`:''}
+      ${canEdit?`<button class="schedule-edit-btn" onclick="openScheduleEditor(${schedDOW})">编辑流程</button>`:''}
     </div>
     ${sched&&sched.length?`
     <div class="schedule-timeline">
@@ -4036,38 +4253,65 @@ function renderScheduleBlock(info,showEdit){
         const icon=SCHEDULE_ICONS[item.title]||DEFAULT_ICON;
         return `<div class="schedule-item">
           <div class="schedule-dot-wrap">
-            <div class="schedule-dot${isActive?' active':''}">${icon}</div>
+            <div class="schedule-dot${isActive?' active':''}" ${isActive?`style="${dotActiveStyle}"`:''}>
+              ${icon}
+            </div>
           </div>
           <div class="schedule-info">
             <div class="schedule-time">${item.time}</div>
-            <div class="schedule-title-text"${isActive?' style="color:var(--sage);"':''}>${escapeHtml(item.title)}${isActive?' <span style="font-size:11px;background:var(--gold-light);color:var(--sage);border-radius:6px;padding:1px 6px;font-weight:600;">进行中</span>':''}</div>
+            <div class="schedule-title-text"${isActive?` style="color:${mt.color};"`:''}>
+              ${escapeHtml(item.title)}
+              ${isActive?`<span style="font-size:11px;background:${mt.color}22;color:${mt.color};border-radius:6px;padding:1px 6px;font-weight:600;margin-left:4px;">进行中</span>`:''}
+            </div>
             ${item.note?`<div class="schedule-note">${escapeHtml(item.note)}</div>`:''}
           </div>
         </div>`;
       }).join('')}
     </div>`:`
     <div class="schedule-empty">
-      ${canEdit?'暂无流程 · 点击"编辑流程"添加':'暂无聚会流程'}
+      ${canEdit?`暂无流程 · <span style="color:${mt.color};cursor:pointer;" onclick="openScheduleEditor(${schedDOW})">点击添加</span>`:'暂无聚会流程'}
     </div>`}
   </div>`;
 }
 
-function openScheduleEditor(){
+// Get nearest upcoming date (within ±14 days) that falls on a given day-of-week
+function getNearestDateForDOW(dow){
+  const keys=Object.keys(worshipData).sort();
+  if(!keys.length)return null;
+  // Find closest date with matching DOW
+  const now=new Date();
+  let best=null,bestDiff=Infinity;
+  keys.forEach(d=>{
+    const dt=new Date(d+'T00:00:00');
+    if(dt.getDay()===dow){
+      const diff=Math.abs(dt-now);
+      if(diff<bestDiff){bestDiff=diff;best=d;}
+    }
+  });
+  return best;
+}
+
+function openScheduleEditor(editDOWParam){
   if(!requireWorshipManager())return;
-  const existing=getScheduleForDate(selectedWorshipDate)||JSON.parse(JSON.stringify(DEFAULT_SCHEDULE));
+  // editDOWParam: number = edit DOW global template; undefined/null = edit current date
+  const editByDOW=(editDOWParam!==undefined&&editDOWParam!==null);
+  const editDOW=editByDOW?Number(editDOWParam):null;
+  let existing;
+  let editorLabel,defaultForReset;
+  if(editByDOW){
+    try{existing=JSON.parse(localStorage.getItem('churchScheduleDOW_'+editDOW)||'null');}catch(_){existing=null;}
+    if(!existing)existing=JSON.parse(JSON.stringify(DEFAULT_SCHEDULE_BY_DOW[editDOW]||DEFAULT_SCHEDULE));
+    const mt=MEETING_TYPES.find(t=>t.dow===editDOW)||MEETING_TYPES[0];
+    editorLabel=mt.icon+' '+mt.label+'（每周默认）';
+    defaultForReset=JSON.stringify(DEFAULT_SCHEDULE_BY_DOW[editDOW]||DEFAULT_SCHEDULE);
+  } else {
+    existing=getScheduleForDate(selectedWorshipDate)||JSON.parse(JSON.stringify(DEFAULT_SCHEDULE));
+    editorLabel=selectedWorshipDate;
+    defaultForReset=JSON.stringify(DEFAULT_SCHEDULE);
+  }
   const sheet=document.createElement('div');
   sheet.className='sheet';sheet.id='scheduleEditorSheet';
   sheet.onclick=e=>{if(e.target===sheet)sheet.remove();};
-  function rows(){
-    return (sheet.querySelectorAll('.sched-row-data')||[]);
-  }
-  function getItems(){
-    return [...rows()].map(r=>({
-      time:r.querySelector('.sched-time-input').value.trim(),
-      title:r.querySelector('.sched-title-input').value.trim(),
-      note:r.querySelector('.sched-note-input').value.trim(),
-    })).filter(x=>x.title);
-  }
   function addRow(item,container){
     const div=document.createElement('div');
     div.className='sched-row sched-row-data';
@@ -4079,24 +4323,29 @@ function openScheduleEditor(){
       <input class="sched-note-input" placeholder="备注（选填）" value="${escapeHtml(item.note||'')}">
       <button class="sched-del-btn" title="删除">×</button>`;
     div.querySelector('.sched-del-btn').onclick=()=>div.remove();
-    // drag-to-reorder
     div.addEventListener('dragstart',e=>{e.dataTransfer.effectAllowed='move';window._dragSchedRow=div;});
     div.addEventListener('dragover',e=>{e.preventDefault();const r=div.getBoundingClientRect();const mid=r.top+r.height/2;div.parentNode.insertBefore(window._dragSchedRow,e.clientY<mid?div:div.nextSibling);});
     container.appendChild(div);
   }
+  const tipHtml=editByDOW?`<div style="background:var(--gold-light);border-radius:10px;padding:8px 12px;font-size:12px;color:var(--sage);margin-bottom:12px;">💡 保存后将作为「${MEETING_TYPES.find(t=>t.dow===editDOW)?.label||''}」的默认流程</div>`:'';
+  const saveBtn=editByDOW
+    ?`<button class="btn btn-gold" style="flex:1;" onclick="saveScheduleEditor(${editDOW},null)">保存流程</button>`
+    :`<button class="btn btn-gold" style="flex:1;" onclick="saveScheduleEditor(null,'${selectedWorshipDate||''}')">保存流程</button>`;
+  const resetJS=`(function(){const c=document.getElementById('schedRowContainer');c.innerHTML='';${defaultForReset}.forEach(x=>window._schedAddRow(x,c));})()`;
   sheet.innerHTML=`<div class="sheet-inner" style="max-height:88vh;overflow-y:auto;">
     <div class="sheet-title">编辑聚会流程
       <span class="sheet-close" onclick="document.getElementById('scheduleEditorSheet').remove()">✕</span>
     </div>
-    <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">${selectedWorshipDate} · 拖动 ☰ 可调整顺序</p>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">${editorLabel} · 拖动 ☰ 可调整顺序</p>
+    ${tipHtml}
     <div id="schedRowContainer"></div>
     <button onclick="(function(){const c=document.getElementById('schedRowContainer');window._schedAddRow({time:'',title:'',note:''},c);})()"
       style="width:100%;margin:8px 0 16px;padding:9px;border:1.5px dashed var(--stone);background:none;border-radius:10px;font-size:13px;color:var(--muted);cursor:pointer;font-family:inherit;">
       + 添加环节
     </button>
     <div style="display:flex;gap:8px;">
-      <button class="btn btn-outline btn-sm" onclick="(function(){const c=document.getElementById('schedRowContainer');c.innerHTML='';${JSON.stringify(DEFAULT_SCHEDULE)}.forEach(x=>window._schedAddRow(x,c));})()" style="font-size:12px;">重置默认</button>
-      <button class="btn btn-gold" style="flex:1;" onclick="saveScheduleEditor()">保存流程</button>
+      <button class="btn btn-outline btn-sm" onclick="${resetJS}" style="font-size:12px;">重置默认</button>
+      ${saveBtn}
     </div>
   </div>`;
   document.body.appendChild(sheet);
@@ -4106,7 +4355,7 @@ function openScheduleEditor(){
   requestAnimationFrame(()=>sheet.classList.add('active'));
 }
 
-function saveScheduleEditor(){
+function saveScheduleEditor(editDOW,editDate){
   const sheet=document.getElementById('scheduleEditorSheet');
   if(!sheet)return;
   const items=[...sheet.querySelectorAll('.sched-row-data')].map(r=>({
@@ -4114,13 +4363,24 @@ function saveScheduleEditor(){
     title:r.querySelector('.sched-title-input').value.trim(),
     note:r.querySelector('.sched-note-input').value.trim(),
   })).filter(x=>x.title);
-  if(!worshipData[selectedWorshipDate])
-    worshipData[selectedWorshipDate]={sermon:'待填写',host:'待填写',prayer:'待填写',songs:[],notices:[],roles:[]};
-  worshipData[selectedWorshipDate].schedule=items;
-  localStorage.setItem('churchWorshipData',JSON.stringify(worshipData));
-  renderWorshipPage();
-  sheet.remove();
-  showToast('✅ 聚会流程已保存');
+  if(editDOW!==null&&editDOW!==undefined){
+    // Save as DOW global template
+    localStorage.setItem('churchScheduleDOW_'+editDOW,JSON.stringify(items));
+    sheet.remove();
+    renderWeeklyPublic();
+    showToast('✅ 聚会流程已保存（'+MEETING_TYPES.find(t=>t.dow===Number(editDOW))?.label+'）');
+  } else {
+    // Save to specific date
+    const date=editDate||selectedWorshipDate;
+    if(date){
+      if(!worshipData[date])worshipData[date]={sermon:'待填写',host:'待填写',prayer:'待填写',songs:[],notices:[],roles:[]};
+      worshipData[date].schedule=items;
+      localStorage.setItem('churchWorshipData',JSON.stringify(worshipData));
+    }
+    renderWorshipPage();
+    sheet.remove();
+    showToast('✅ 聚会流程已保存');
+  }
 }
 
 function selectWorshipDate(date){
