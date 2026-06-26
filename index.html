@@ -972,7 +972,7 @@ body.bible-fullscreen .bible-fab{
 .member-row.present .check-btn{background:var(--sage);border-color:var(--sage);color:white;}
 .login-logo{color:var(--sage);}
 .btn-gold{background:var(--sage);}
-#page-att .container{padding-top:12px;}
+#page-att .container{padding-top:4px;}
 .att-tab-btn{transition:color .15s,border-color .15s;}
 .sync-dot{background:#a8d88a;}
 /* bible verse-num and ref colors handled in main bible css */
@@ -1053,7 +1053,7 @@ body.bible-fullscreen .bible-fab{
   <div style="padding:0 16px 10px;font-size:13px;color:var(--muted);background:#fff;" id="dateDisplay"></div>
 
   <!-- Stats + controls wrapper -->
-  <div style="background:#fff;border-radius:0 0 24px 24px;padding-bottom:2px;box-shadow:0 4px 16px rgba(0,0,0,.06);">
+  <div style="background:#fff;border-radius:0;padding-bottom:2px;box-shadow:0 4px 16px rgba(0,0,0,.06);">
   <!-- Stats card -->
   <div style="margin:0 16px 12px;background:var(--sage);border-radius:20px;padding:18px 20px;display:flex;align-items:center;gap:20px;">
     <!-- Circle progress -->
@@ -1141,21 +1141,6 @@ body.bible-fullscreen .bible-fab{
 
   </div><!-- /stats+controls wrapper -->
 
-  <!-- Filter tabs with counts -->
-  <div id="attFilterTabs" style="display:flex;border-bottom:1px solid var(--stone);padding:0 8px;position:sticky;top:0;z-index:48;background:#fff;box-shadow:none;transition:box-shadow .15s;">
-    <button class="att-tab-btn active" id="attTabAll" onclick="setAttFilter('all',this)" data-filter="all"
-      style="flex:1;padding:10px 4px;border:none;background:none;font-family:'Noto Sans SC',sans-serif;font-size:13px;cursor:pointer;border-bottom:2px solid var(--sage);color:var(--sage);font-weight:600;">
-      全部 <span id="attTabCountAll">0</span>
-    </button>
-    <button class="att-tab-btn" id="attTabPresent" onclick="setAttFilter('present',this)" data-filter="present"
-      style="flex:1;padding:10px 4px;border:none;background:none;font-family:'Noto Sans SC',sans-serif;font-size:13px;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);">
-      已到 <span id="attTabCountPresent">0</span>
-    </button>
-    <button class="att-tab-btn" id="attTabAbsent" onclick="setAttFilter('absent',this)" data-filter="absent"
-      style="flex:1;padding:10px 4px;border:none;background:none;font-family:'Noto Sans SC',sans-serif;font-size:13px;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);">
-      未到 <span id="attTabCountAbsent">0</span>
-    </button>
-  </div>
 </div>
 
 <!-- ══ PAGE: 本周 ══ -->
@@ -1191,6 +1176,21 @@ body.bible-fullscreen .bible-fab{
 
 <!-- ══ PAGE: 签到 ══ -->
 <div class="page" id="page-att">
+  <!-- Filter tabs — sticky，上滑后固定在顶部 -->
+  <div id="attFilterTabs" style="display:flex;border-bottom:1px solid var(--stone);padding:0 8px;position:sticky;top:0;z-index:48;background:#fff;box-shadow:none;transition:box-shadow .15s;">
+    <button class="att-tab-btn active" id="attTabAll" onclick="setAttFilter('all',this)" data-filter="all"
+      style="flex:1;padding:10px 4px;border:none;background:none;font-family:'Noto Sans SC',sans-serif;font-size:13px;cursor:pointer;border-bottom:2px solid var(--sage);color:var(--sage);font-weight:600;">
+      全部 <span id="attTabCountAll">0</span>
+    </button>
+    <button class="att-tab-btn" id="attTabPresent" onclick="setAttFilter('present',this)" data-filter="present"
+      style="flex:1;padding:10px 4px;border:none;background:none;font-family:'Noto Sans SC',sans-serif;font-size:13px;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);">
+      已到 <span id="attTabCountPresent">0</span>
+    </button>
+    <button class="att-tab-btn" id="attTabAbsent" onclick="setAttFilter('absent',this)" data-filter="absent"
+      style="flex:1;padding:10px 4px;border:none;background:none;font-family:'Noto Sans SC',sans-serif;font-size:13px;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);">
+      未到 <span id="attTabCountAbsent">0</span>
+    </button>
+  </div>
   <div class="container"><div id="attList"><div class="loading"><div class="spinner"></div><br>正在加载…</div></div></div>
 </div>
 
@@ -2520,11 +2520,19 @@ async function onAttDateChange(dateStr){
 // sticky shadow on filter tabs
 function initAttStickyTabs(){
   const tabs=document.getElementById('attFilterTabs');
-  if(!tabs)return;
-  const obs=new IntersectionObserver(([e])=>{
-    tabs.style.boxShadow=e.intersectionRatio<1?'0 2px 8px rgba(0,0,0,.10)':'none';
-  },{threshold:[1],rootMargin:'-1px 0px 0px 0px'});
-  obs.observe(tabs);
+  const header=document.getElementById('attHeader');
+  if(!tabs||!header)return;
+  function onScroll(){
+    const headerBottom=header.getBoundingClientRect().bottom;
+    if(headerBottom<=0){
+      tabs.style.boxShadow='0 2px 8px rgba(0,0,0,.10)';
+    }else{
+      tabs.style.boxShadow='none';
+    }
+  }
+  window.removeEventListener('scroll',tabs._scrollHandler);
+  tabs._scrollHandler=onScroll;
+  window.addEventListener('scroll',onScroll,{passive:true});
 }
 function initMemberStickyTabs(){
   const tabs=document.getElementById('memberTabs');
