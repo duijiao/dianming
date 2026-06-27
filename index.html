@@ -863,7 +863,7 @@ body.bible-fullscreen .bible-fab{
 
 /* ══ 聚会流程时间轴（新版） ══ */
 .schedule-card{
-  background:#f4f6f3;border-radius:22px;margin:0 0 12px;
+  background:#fff;border-radius:22px;margin:0 0 12px;
   box-shadow:0 3px 16px rgba(0,0,0,.07);overflow:hidden;
   padding:14px;
 }
@@ -899,7 +899,7 @@ body.bible-fullscreen .bible-fab{
 
 /* 当前进行中大横幅 */
 .schedule-active-banner{
-  background:#fff;border-radius:16px;padding:14px 16px 12px;
+  background:#f7f7f5;border-radius:16px;padding:14px 16px 12px;
   margin-bottom:10px;border:1px solid rgba(45,140,82,.12);
   box-shadow:0 2px 8px rgba(45,140,82,.08);
 }
@@ -961,7 +961,7 @@ body.bible-fullscreen .bible-fab{
 
 /* 项目内容卡片 */
 .schedule-item-body{
-  flex:1;background:#fff;border-radius:14px;padding:11px 14px;
+  flex:1;background:#f7f7f5;border-radius:14px;padding:11px 14px;
   margin:4px 0;display:flex;align-items:center;gap:10px;
   box-shadow:0 1px 4px rgba(0,0,0,.04);
   border:1px solid rgba(0,0,0,.05);
@@ -1004,7 +1004,7 @@ body.bible-fullscreen .bible-fab{
 
 /* 总进度底栏 */
 .schedule-footer{
-  background:#fff;border-radius:14px;padding:12px 16px;
+  background:#f7f7f5;border-radius:14px;padding:12px 16px;
   margin-top:10px;
 }
 .schedule-footer-top{
@@ -2161,6 +2161,8 @@ window.BIBLE_LOAD_PROMISE = fetch('./cmn-cu89s_vpl.txt')
         document.getElementById('page-bible')?.classList.contains('active')) {
       loadBibleChapter();
     }
+    // 本地圣经加载完成后，若金句仍为内置备用，则用本地数据刷新
+    if (typeof _refreshVerseFromLocal === 'function') _refreshVerseFromLocal();
   })
   .catch(() => { window.LOCAL_BIBLE = {}; });
 </script>
@@ -3466,13 +3468,13 @@ function _seededVerseEntry(){
 }
 
 function getTodayVerse(){
-  // 优先读当日缓存
   const cacheKey='churchDailyVerse_'+_todayDateKey();
+  // ① 当日缓存
   try{
     const cached=JSON.parse(localStorage.getItem(cacheKey)||'null');
     if(cached&&cached.text&&cached.ref)return cached;
   }catch(_){}
-  // 缓存未命中：优先从本地圣经同步获取，否则用内置备用并异步拉取 API
+  // ② 本地圣经（同步可用时）
   if(window.LOCAL_BIBLE&&Object.keys(window.LOCAL_BIBLE).length>0){
     const result=_getVerseFromLocal();
     if(result){
@@ -3480,11 +3482,44 @@ function getTodayVerse(){
       return result;
     }
   }
+  // ③ 内置备用 + 异步拉取（本地圣经尚未加载 or 加载失败）
   const n=new Date();
   const seed=n.getFullYear()*10000+(n.getMonth()+1)*100+n.getDate();
   const fbIdx=Math.abs(seed)%DAILY_VERSES_FALLBACK.length;
-  _fetchAndCacheTodayVerse();  // 异步，不阻塞渲染
+  // 若本地圣经还在加载中，等它完成后再刷新（不触发 API 请求）
+  if(window.LOCAL_BIBLE===null){
+    // BIBLE_LOAD_PROMISE 完成后会调用 _refreshVerseFromLocal
+  } else {
+    _fetchAndCacheTodayVerse(); // 本地也没有才走 API
+  }
   return DAILY_VERSES_FALLBACK[fbIdx];
+}
+
+// 本地圣经加载完成后调用：若当日缓存仍是内置备用，用本地数据替换并刷新 UI
+function _refreshVerseFromLocal(){
+  const cacheKey='churchDailyVerse_'+_todayDateKey();
+  // 已有非备用缓存则跳过
+  try{
+    const cached=JSON.parse(localStorage.getItem(cacheKey)||'null');
+    if(cached&&cached.text&&cached.ref){
+      // 检查是否是内置备用（ref 格式无冒号分章节，如"诗篇 23:1"有冒号，备用也有…直接跳过，已有缓存就够）
+      return;
+    }
+  }catch(_){}
+  // 无缓存 → 用本地取节
+  const result=_getVerseFromLocal();
+  if(!result)return;
+  try{localStorage.setItem(cacheKey,JSON.stringify(result));}catch(_){}
+  // 更新内存状态
+  window._currentDailyVerse=result;
+  // 静默刷新金句卡片 DOM
+  const el=document.getElementById('weeklyPublicContent');
+  if(el){
+    const vt=el.querySelector('.verse-text');
+    const vr=el.querySelector('.verse-ref');
+    if(vt)vt.textContent=result.text;
+    if(vr)vr.textContent='—— '+result.ref;
+  }
 }
 
 function _getVerseFromLocal(){
@@ -4552,9 +4587,7 @@ function renderWorshipPage(){
         </div>
         <svg class="worship-songs-btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
       </button>`}
-    </div>`:`<div style="padding:32px 0;text-align:center;color:#bbb;font-size:14px;">本周暂无敬拜排班</div>`}
-    <!-- 聚会流程 -->
-    <div id="schedule-block-container">${renderScheduleBlock(info,canManageWorship())}</div>`;
+    </div>`:`<div style="padding:32px 0;text-align:center;color:#bbb;font-size:14px;">本周暂无敬拜排班</div>`}`;
   startScheduleTicker();
 }
 // ══ 聚会流程时间轴 ════════════════════════════════
