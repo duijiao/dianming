@@ -169,6 +169,40 @@ body.device-desktop .container{max-width:1100px;}
 .appbar-user-pill:active{background:#e8e5de;}
 .appbar-user-label{font-size:13px;font-weight:600;white-space:nowrap;max-width:90px;overflow:hidden;text-overflow:ellipsis;}
 
+/* ── USER DROPDOWN MENU ── */
+.appbar-user-wrap{position:relative;display:inline-flex;}
+.user-dropdown{
+  position:absolute;top:calc(100% + 8px);right:0;
+  background:#fff;border-radius:16px;
+  box-shadow:0 8px 32px rgba(0,0,0,.14),0 2px 8px rgba(0,0,0,.08);
+  border:1px solid rgba(0,0,0,.06);
+  min-width:160px;z-index:200;
+  overflow:hidden;
+  opacity:0;pointer-events:none;
+  transform:translateY(-6px) scale(.97);
+  transition:opacity .18s,transform .18s;
+}
+.user-dropdown.open{opacity:1;pointer-events:auto;transform:translateY(0) scale(1);}
+.user-dropdown-info{
+  padding:12px 16px 10px;
+  border-bottom:1px solid rgba(0,0,0,.06);
+}
+.user-dropdown-role{font-size:12px;color:var(--muted);}
+.user-dropdown-name{font-size:14px;font-weight:700;color:var(--ink);margin-top:1px;}
+.user-dropdown-item{
+  display:flex;align-items:center;gap:10px;
+  padding:11px 16px;cursor:pointer;
+  font-size:14px;font-weight:500;color:var(--ink);
+  transition:background .12s;
+}
+.user-dropdown-item:hover{background:#f5f5f3;}
+.user-dropdown-item svg{width:17px;height:17px;flex-shrink:0;color:var(--muted);}
+.user-dropdown-item.danger{color:var(--red);}
+.user-dropdown-item.danger svg{color:var(--red);}
+.user-dropdown-sep{height:1px;background:rgba(0,0,0,.06);margin:0;}
+/* admin-only 在 dropdown 里用 flex 而非 inline-flex */
+body.role-admin .user-dropdown-item.admin-only{display:flex!important;}
+
 /* 横向滑动卡片区 */
 .swipe-cards-wrapper{
   overflow-x:auto;
@@ -651,6 +685,8 @@ body.device-desktop .container{max-width:1100px;}
 /* ── REPORT PAGE LAYOUT ── */
 #page-report.active{display:block;}
 #page-report .report-scroll{height:calc(100vh - var(--nav-h) - 58px);overflow-y:auto;padding-bottom:16px;}
+/* report panel inside att page */
+#attReportPanel{min-height:calc(100vh - var(--nav-h) - 50px);padding-bottom:32px;}
 .report-table th{border-radius:0;}
 .report-table th:first-child{border-radius:8px 0 0 0;}
 .report-table th:last-child{border-radius:0 8px 0 0;}
@@ -1212,6 +1248,26 @@ body.bible-fullscreen .bible-fab{
 </style>
 </head>
 <body>
+<script>
+// 签到账号刷新时，在首次渲染前就把 page-home 的 active 去掉，直接激活 page-att
+(function(){
+  try{
+    const u=JSON.parse(localStorage.getItem('churchCurrentUser')||'{}');
+    if(u.role==='attendance'){
+      document.addEventListener('DOMContentLoaded',function(){
+        document.querySelectorAll('.page').forEach(function(el){el.classList.remove('active');});
+        var attPage=document.getElementById('page-att');
+        if(attPage)attPage.classList.add('active');
+        var attHeader=document.getElementById('attHeader');
+        if(attHeader)attHeader.style.display='block';
+        document.querySelectorAll('.nav-item').forEach(function(el){el.classList.remove('active');});
+        var navAtt=document.getElementById('nav-att');
+        if(navAtt)navAtt.classList.add('active');
+      });
+    }
+  }catch(_){}
+})();
+</script>
 
 <!-- ── LOGIN ── -->
 <div class="login-screen" id="loginScreen">
@@ -1274,9 +1330,18 @@ body.bible-fullscreen .bible-fab{
       <svg viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2.5" style="width:16px;height:16px;"><polyline points="6 9 12 15 18 9"/></svg>
       <input type="date" id="attDateInput" style="position:absolute;inset:0;opacity:0;width:100%;cursor:pointer;" onchange="onAttDateChange(this.value)">
     </div>
-    <div style="display:flex;align-items:center;gap:4px;color:var(--muted);font-size:13px;cursor:pointer;" onclick="openAbsentSheet()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      历史
+    <!-- 卡片式签到/报表切换 -->
+    <div style="display:flex;background:#f0ede6;border-radius:10px;padding:3px;gap:2px;">
+      <button id="attMainTabCheckin" onclick="switchAttMainTab('checkin')"
+        style="display:flex;align-items:center;gap:4px;padding:5px 11px;border:none;border-radius:7px;font-family:'Noto Sans SC',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;background:var(--sage);color:#fff;box-shadow:0 1px 4px rgba(45,140,82,.25);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:12px;height:12px;"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        签到
+      </button>
+      <button id="attMainTabReport" onclick="switchAttMainTab('report')"
+        style="display:flex;align-items:center;gap:4px;padding:5px 11px;border:none;border-radius:7px;font-family:'Noto Sans SC',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;background:transparent;color:var(--muted);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        报表
+      </button>
     </div>
   </div>
   <!-- Date -->
@@ -1362,10 +1427,10 @@ body.bible-fullscreen .bible-fab{
       </select>
       <svg viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2.5" style="width:13px;height:13px;position:absolute;right:8px;top:50%;transform:translateY(-50%);pointer-events:none;"><polyline points="6 9 12 15 18 9"/></svg>
     </div>
-    <button class="btn btn-outline attendance-only" onclick="openAttFilterSheet()"
+    <button class="btn btn-outline" onclick="openAttMembersSheet()"
       style="padding:9px 12px;border-radius:12px;font-size:13px;gap:4px;">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-      筛选
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      会众
     </button>
   </div>
 
@@ -1389,14 +1454,37 @@ body.bible-fullscreen .bible-fab{
       </div>
       <span class="home-appbar-name">巴西华人基督教会</span>
     </div>
-    <div class="appbar-user-pill" id="appbarLoginBtn" onclick="handleAuthClick()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;flex-shrink:0;">
-        <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-      </svg>
-      <span id="appbarDateLabel" class="appbar-user-label">游客模式</span>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px;flex-shrink:0;opacity:.6;">
-        <polyline points="6 9 12 15 18 9"/>
-      </svg>
+    <div class="appbar-user-wrap" id="appbarUserWrap">
+      <div class="appbar-user-pill" id="appbarLoginBtn" onclick="toggleUserDropdown(event)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;flex-shrink:0;">
+          <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+        </svg>
+        <span id="appbarDateLabel" class="appbar-user-label">游客模式</span>
+        <svg id="appbarChevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px;flex-shrink:0;opacity:.6;transition:transform .18s;">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </div>
+      <div class="user-dropdown" id="userDropdown">
+        <div class="user-dropdown-info">
+          <div class="user-dropdown-role">当前身份</div>
+          <div class="user-dropdown-name" id="dropdownRoleName">游客模式</div>
+        </div>
+        <!-- 未登录时显示 -->
+        <div class="user-dropdown-item" id="dropdownLoginItem" onclick="closeUserDropdown();openAdminLogin();">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+          登录
+        </div>
+        <!-- 已登录时显示 -->
+        <div class="user-dropdown-item admin-only" id="dropdownSettingsItem" onclick="closeUserDropdown();showPage('settings');">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          设置
+        </div>
+        <div class="user-dropdown-sep" id="dropdownSep" style="display:none;"></div>
+        <div class="user-dropdown-item danger" id="dropdownLogoutItem" onclick="closeUserDropdown();doLogout();" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          退出登录
+        </div>
+      </div>
     </div>
   </div>
   <div class="container" style="padding-top:14px;">
@@ -1406,22 +1494,80 @@ body.bible-fullscreen .bible-fab{
 
 <!-- ══ PAGE: 签到 ══ -->
 <div class="page" id="page-att">
-  <!-- Filter tabs — sticky，上滑后固定在顶部 -->
-  <div id="attFilterTabs" style="display:flex;border-bottom:1px solid var(--stone);padding:0 8px;position:sticky;top:0;z-index:48;background:#fff;box-shadow:none;transition:box-shadow .15s;">
-    <button class="att-tab-btn active" id="attTabAll" onclick="setAttFilter('all',this)" data-filter="all"
-      style="flex:1;padding:10px 4px;border:none;background:none;font-family:'Noto Sans SC',sans-serif;font-size:13px;cursor:pointer;border-bottom:2px solid var(--sage);color:var(--sage);font-weight:600;">
-      全部 <span id="attTabCountAll">0</span>
-    </button>
-    <button class="att-tab-btn" id="attTabPresent" onclick="setAttFilter('present',this)" data-filter="present"
-      style="flex:1;padding:10px 4px;border:none;background:none;font-family:'Noto Sans SC',sans-serif;font-size:13px;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);">
-      已到 <span id="attTabCountPresent">0</span>
-    </button>
-    <button class="att-tab-btn" id="attTabAbsent" onclick="setAttFilter('absent',this)" data-filter="absent"
-      style="flex:1;padding:10px 4px;border:none;background:none;font-family:'Noto Sans SC',sans-serif;font-size:13px;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);">
-      未到 <span id="attTabCountAbsent">0</span>
-    </button>
+
+  <!-- ══ 签到面板 ══ -->
+  <div id="attCheckinPanel">
+    <!-- Filter tabs — sticky -->
+    <div id="attFilterTabs" style="display:flex;border-bottom:1px solid var(--stone);padding:0 8px;position:sticky;top:0;z-index:48;background:#fff;box-shadow:none;transition:box-shadow .15s;">
+      <button class="att-tab-btn active" id="attTabAll" onclick="setAttFilter('all',this)" data-filter="all"
+        style="flex:1;padding:10px 4px;border:none;background:none;font-family:'Noto Sans SC',sans-serif;font-size:13px;cursor:pointer;border-bottom:2px solid var(--sage);color:var(--sage);font-weight:600;">
+        全部 <span id="attTabCountAll">0</span>
+      </button>
+      <button class="att-tab-btn" id="attTabPresent" onclick="setAttFilter('present',this)" data-filter="present"
+        style="flex:1;padding:10px 4px;border:none;background:none;font-family:'Noto Sans SC',sans-serif;font-size:13px;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);">
+        已到 <span id="attTabCountPresent">0</span>
+      </button>
+      <button class="att-tab-btn" id="attTabAbsent" onclick="setAttFilter('absent',this)" data-filter="absent"
+        style="flex:1;padding:10px 4px;border:none;background:none;font-family:'Noto Sans SC',sans-serif;font-size:13px;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);">
+        未到 <span id="attTabCountAbsent">0</span>
+      </button>
+    </div>
+    <div class="container"><div id="attList"><div class="loading"><div class="spinner"></div><br>正在加载…</div></div></div>
   </div>
-  <div class="container"><div id="attList"><div class="loading"><div class="spinner"></div><br>正在加载…</div></div></div>
+
+  <!-- ══ 报表面板 ══ -->
+  <div id="attReportPanel" style="display:none;">
+    <!-- 月/年切换胶囊 -->
+    <div style="background:#fff;border-bottom:1px solid rgba(0,0,0,.06);padding:12px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:47;">
+      <div style="display:flex;background:#f4f4f2;border:1.5px solid #e0ddd5;border-radius:20px;padding:3px;gap:2px;flex-shrink:0;">
+        <button id="reportTabMonthBtn" onclick="setReportTab('month',this)"
+          style="padding:5px 14px;border:none;border-radius:16px;font-size:13px;font-weight:700;font-family:'Noto Sans SC',sans-serif;cursor:pointer;transition:all .15s;background:var(--sage);color:#fff;">月度</button>
+        <button id="reportTabYearBtn" onclick="setReportTab('year',this)"
+          style="padding:5px 14px;border:none;border-radius:16px;font-size:13px;font-weight:600;font-family:'Noto Sans SC',sans-serif;cursor:pointer;transition:all .15s;background:transparent;color:var(--muted);">年度</button>
+      </div>
+      <div id="reportExportBtnWrap" style="display:flex;gap:6px;margin-left:auto;">
+        <button class="btn btn-gold btn-sm" id="reportDownloadBtn" onclick="downloadCurrentReport()" style="border-radius:10px;padding:7px 12px;display:flex;align-items:center;gap:4px;white-space:nowrap;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          下载
+        </button>
+        <button class="btn btn-outline btn-sm" id="reportCopyBtn" onclick="copyCurrentReport()" style="border-radius:10px;padding:7px 12px;display:flex;align-items:center;gap:4px;white-space:nowrap;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          复制
+        </button>
+      </div>
+    </div>
+
+    <!-- 月度报表 -->
+    <div id="monthReport" style="display:block;">
+      <div style="background:#fff;border-bottom:1px solid rgba(0,0,0,.04);padding:10px 16px;display:flex;gap:8px;align-items:center;">
+        <div style="flex:1;position:relative;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2" style="width:15px;height:15px;position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <input type="month" id="monthPicker" class="form-input" style="padding-left:34px;border-radius:12px;font-size:13px;" onchange="buildMonthReport()">
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="openExportWeekSheet()" style="border-radius:10px;padding:7px 12px;white-space:nowrap;display:flex;align-items:center;gap:4px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          导出名单
+        </button>
+      </div>
+      <div class="container" style="padding-top:14px;">
+        <div id="monthReportContent"></div>
+      </div>
+    </div>
+
+    <!-- 年度报表 -->
+    <div id="yearReport" style="display:none;">
+      <div style="background:#fff;border-bottom:1px solid rgba(0,0,0,.04);padding:10px 16px;display:flex;gap:8px;align-items:center;">
+        <div style="flex:1;position:relative;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2" style="width:15px;height:15px;position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <select id="yearPicker" class="form-select" style="padding-left:34px;border-radius:12px;font-size:13px;" onchange="buildYearReport()"></select>
+        </div>
+      </div>
+      <div class="container" style="padding-top:14px;">
+        <div id="yearReportContent"></div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <!-- ══ PAGE: 会众 ══ -->
@@ -1629,75 +1775,6 @@ body.bible-fullscreen .bible-fab{
   </div>
 </div>
 
-<!-- ══ PAGE: 报表 ══ -->
-<div class="page" id="page-report">
-  <!-- App Bar — 与其他页面一致 -->
-  <div class="home-appbar" style="flex-shrink:0;">
-    <div class="home-appbar-logo">
-      <div class="home-appbar-badge" style="background:linear-gradient(135deg,#3d9b5a,#2d7a44);">
-        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="width:18px;height:18px;">
-          <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
-        </svg>
-      </div>
-      <span class="home-appbar-name">出席报表</span>
-    </div>
-    <!-- 月/年 切换胶囊 -->
-    <div style="display:flex;background:#f4f4f2;border:1.5px solid #e0ddd5;border-radius:20px;padding:3px;gap:2px;">
-      <button id="reportTabMonthBtn" onclick="setReportTab('month',this)"
-        style="padding:5px 14px;border:none;border-radius:16px;font-size:13px;font-weight:700;font-family:'Noto Sans SC',sans-serif;cursor:pointer;transition:all .15s;background:var(--sage);color:#fff;">
-        月度
-      </button>
-      <button id="reportTabYearBtn" onclick="setReportTab('year',this)"
-        style="padding:5px 14px;border:none;border-radius:16px;font-size:13px;font-weight:600;font-family:'Noto Sans SC',sans-serif;cursor:pointer;transition:all .15s;background:transparent;color:var(--muted);">
-        年度
-      </button>
-    </div>
-  </div>
-
-  <!-- MONTH REPORT -->
-  <div id="monthReport" class="report-scroll">
-    <!-- 选择器条 -->
-    <div style="background:#fff;border-bottom:1px solid rgba(0,0,0,.05);padding:12px 16px;display:flex;gap:10px;align-items:center;position:sticky;top:0;z-index:10;box-shadow:0 1px 6px rgba(0,0,0,.04);">
-      <div style="flex:1;position:relative;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2" style="width:15px;height:15px;position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        <input type="month" id="monthPicker" class="form-input" style="padding-left:34px;border-radius:12px;" onchange="buildMonthReport()">
-      </div>
-      <button class="btn btn-gold btn-sm" onclick="downloadMonthReport()" style="display:flex;align-items:center;gap:5px;border-radius:10px;padding:8px 14px;white-space:nowrap;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        下载
-      </button>
-      <button class="btn btn-outline btn-sm" onclick="copyMonthReport()" style="border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:4px;white-space:nowrap;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-        复制
-      </button>
-    </div>
-    <div class="container" style="padding-top:14px;">
-      <div id="monthReportContent"></div>
-    </div>
-  </div>
-
-  <!-- YEAR REPORT -->
-  <div id="yearReport" class="report-scroll" style="display:none;">
-    <!-- 选择器条 -->
-    <div style="background:#fff;border-bottom:1px solid rgba(0,0,0,.05);padding:12px 16px;display:flex;gap:10px;align-items:center;position:sticky;top:0;z-index:10;box-shadow:0 1px 6px rgba(0,0,0,.04);">
-      <div style="flex:1;position:relative;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2" style="width:15px;height:15px;position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        <select id="yearPicker" class="form-select" style="padding-left:34px;border-radius:12px;" onchange="buildYearReport()"></select>
-      </div>
-      <button class="btn btn-gold btn-sm" onclick="downloadYearReport()" style="display:flex;align-items:center;gap:5px;border-radius:10px;padding:8px 14px;white-space:nowrap;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        下载
-      </button>
-      <button class="btn btn-outline btn-sm" onclick="copyYearReport()" style="border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:4px;white-space:nowrap;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-        复制
-      </button>
-    </div>
-    <div class="container" style="padding-top:14px;">
-      <div id="yearReportContent"></div>
-    </div>
-  </div>
-</div>
 
 <!-- ══ PAGE: 圣经 ══ -->
 <div class="page" id="page-bible">
@@ -1805,7 +1882,7 @@ body.bible-fullscreen .bible-fab{
 <!-- ══ PAGE: 设置 ══ -->
 <div class="page" id="page-settings">
   <div class="container" style="padding-top:16px;">
-    <div class="card">
+    <div class="card" style="display:none;">
       <div class="card-title">Supabase 配置</div>
       <div class="form-group">
         <label class="form-label">Project URL</label>
@@ -1880,11 +1957,8 @@ body.bible-fullscreen .bible-fab{
   <button class="nav-item attendance-only" id="nav-att" onclick="showPage('att')">
     <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>签到
   </button>
-  <button class="nav-item attendance-only" id="nav-members" onclick="showPage('members')">
+  <button class="nav-item attendance-only" id="nav-members" onclick="showPage('members')" style="display:none!important;">
     <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>会众
-  </button>
-  <button class="nav-item attendance-only" id="nav-report" onclick="showPage('report')">
-    <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>报表
   </button>
   <button class="nav-item" id="nav-worship" onclick="showPage('worship')">
     <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>敬拜
@@ -1892,9 +1966,7 @@ body.bible-fullscreen .bible-fab{
   <button class="nav-item" id="nav-bible" onclick="showPage('bible')">
     <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>圣经
   </button>
-  <button class="nav-item admin-only" id="nav-settings" onclick="showPage('settings')">
-    <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>设置
-  </button>
+
   <!-- 游客/非管理员时显示「我的」 -->
   <button class="nav-item guest-only" id="nav-mine" onclick="handleMyPage()">
     <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>我的
@@ -1970,6 +2042,66 @@ body.bible-fullscreen .bible-fab{
     <div class="section-label">事工小组</div>
     <div id="ministryGroupList"></div>
     <button class="btn btn-outline btn-full" onclick="addGroup('ministry')">＋ 新增事工组</button>
+  </div>
+</div>
+
+<!-- ATT MEMBERS SHEET -->
+<div class="sheet" id="attMembersSheet" onclick="closeSheetOnOverlay(event,'attMembersSheet')">
+  <div class="sheet-inner" style="max-height:88vh;">
+    <div class="sheet-title">
+      👥 会众名单
+      <span class="sheet-close" onclick="closeSheet('attMembersSheet')">✕</span>
+    </div>
+    <div style="position:relative;margin-bottom:12px;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2" style="width:16px;height:16px;position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input class="search-box" id="attMemberSheetSearch" placeholder="搜索姓名…" oninput="renderAttMembersSheet()"
+        style="width:100%;padding:9px 10px 9px 32px;border-radius:12px;font-size:14px;box-sizing:border-box;">
+    </div>
+    <div style="display:flex;gap:0;border-bottom:1px solid var(--stone);margin-bottom:12px;">
+      <button class="att-sheet-tab" data-tab="all" onclick="setAttSheetTab('all',this)"
+        style="flex:1;padding:8px 4px;border:none;background:none;font-family:'Noto Sans SC',sans-serif;font-size:13px;cursor:pointer;border-bottom:2px solid var(--sage);color:var(--sage);font-weight:600;">全部</button>
+      <button class="att-sheet-tab" data-tab="family" onclick="setAttSheetTab('family',this)"
+        style="flex:1;padding:8px 4px;border:none;background:none;font-family:'Noto Sans SC',sans-serif;font-size:13px;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);">小组</button>
+      <button class="att-sheet-tab" data-tab="ministry" onclick="setAttSheetTab('ministry',this)"
+        style="flex:1;padding:8px 4px;border:none;background:none;font-family:'Noto Sans SC',sans-serif;font-size:13px;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);">事工组</button>
+    </div>
+    <div id="attMembersSheetList" style="overflow-y:auto;max-height:calc(88vh - 220px);"></div>
+    <div class="attendance-only" style="margin-top:14px;">
+      <button class="btn btn-gold btn-full" onclick="closeSheet('attMembersSheet');openNewMemberSheet(false);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+        📝 新人登记
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- EXPORT WEEK LIST SHEET -->
+<div class="sheet" id="exportWeekSheet" onclick="closeSheetOnOverlay(event,'exportWeekSheet')">
+  <div class="sheet-inner">
+    <div class="sheet-title">📤 导出签到名单<span class="sheet-close" onclick="closeSheet('exportWeekSheet')">✕</span></div>
+    <div style="display:flex;gap:8px;margin-bottom:12px;">
+      <div style="flex:1;position:relative;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2" style="width:14px;height:14px;position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <select id="exportWeekDateSelect" class="form-select" style="padding-left:32px;font-size:13px;" onchange="renderExportWeekPreview()"></select>
+      </div>
+      <select id="exportWeekTypeSelect" class="form-select" style="width:100px;font-size:13px;" onchange="renderExportWeekPreview()">
+        <option value="present">已出席</option>
+        <option value="absent">未出席</option>
+        <option value="all">全体</option>
+      </select>
+    </div>
+    <div id="exportWeekPreview" style="background:#f8f7f4;border-radius:14px;padding:14px;min-height:80px;margin-bottom:14px;"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-gold" style="flex:1;justify-content:center;" onclick="downloadExportWeekList()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        下载 TXT
+      </button>
+      <button class="btn btn-outline" style="flex:1;justify-content:center;" onclick="copyExportWeekList()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        复制
+      </button>
+    </div>
   </div>
 </div>
 
@@ -2688,8 +2820,11 @@ function updateAdminUI(){
   if(modeLabel)modeLabel.textContent=roleLabel();
   // app bar 日期/角色标签由 renderWeeklyPublic 统一更新
   if(!isAdmin&&document.getElementById('page-settings').classList.contains('active'))showPage('home');
-  if(!canManageAttendance()&&['page-att','page-members','page-report'].some(id=>document.getElementById(id).classList.contains('active')))showPage('home');
+  if(!canManageAttendance()&&['page-att','page-members'].some(id=>document.getElementById(id)?.classList.contains('active')))showPage('home');
   if(!canManageWorship()&&document.getElementById('page-worship-edit').classList.contains('active'))showPage('home');
+  // 签到账号默认停在签到页
+  if(currentUser.role==='attendance'&&!document.getElementById('page-att').classList.contains('active'))showPage('att');
+  syncDropdownState();
   renderAttList();
   renderMemberList();
   renderWeeklyPublic();
@@ -2702,6 +2837,32 @@ function openAdminLogin(){
 }
 function closeAdminLogin(){document.getElementById('loginScreen').classList.remove('active');}
 function handleAuthClick(){currentUser.role!=='guest'?doLogout():openAdminLogin();}
+function toggleUserDropdown(e){
+  e.stopPropagation();
+  const d=document.getElementById('userDropdown');
+  const c=document.getElementById('appbarChevron');
+  const isOpen=d.classList.contains('open');
+  if(isOpen){d.classList.remove('open');if(c)c.style.transform='';}
+  else{syncDropdownState();d.classList.add('open');if(c)c.style.transform='rotate(180deg)';}
+}
+function closeUserDropdown(){
+  const d=document.getElementById('userDropdown');
+  const c=document.getElementById('appbarChevron');
+  if(d)d.classList.remove('open');
+  if(c)c.style.transform='';
+}
+function syncDropdownState(){
+  const isGuest=currentUser.role==='guest';
+  const el=id=>document.getElementById(id);
+  if(el('dropdownRoleName'))el('dropdownRoleName').textContent=currentUser.label||'游客模式';
+  if(el('dropdownLoginItem'))el('dropdownLoginItem').style.display=isGuest?'flex':'none';
+  if(el('dropdownLogoutItem'))el('dropdownLogoutItem').style.display=isGuest?'none':'flex';
+  if(el('dropdownSep'))el('dropdownSep').style.display=isGuest?'none':'block';
+}
+document.addEventListener('click',function(e){
+  const wrap=document.getElementById('appbarUserWrap');
+  if(wrap&&!wrap.contains(e.target))closeUserDropdown();
+},true);
 function requireAdmin(){
   if(isAdmin)return true;
   showToast('请先登录管理账号');
@@ -3092,6 +3253,61 @@ function openBibleSearchResult(bookCode,chapter){
   setBibleState(bookCode,chapter);
   loadBibleChapter();
 }
+
+// ── 金句 → 圣经联动：解析 ref 跳转并高亮对应节 ──
+function jumpToBibleFromVerse(verse){
+  if(!verse||!verse.ref)return;
+  // ref format: "书名 章:节"  e.g. "诗篇 119:105" or "约翰福音 3:16"
+  const match=verse.ref.match(/^(.+?)\s+(\d+):(\d+)$/);
+  if(!match)return showPage('bible');
+  const bookName=match[1].trim();
+  const ch=parseInt(match[2],10);
+  const v=parseInt(match[3],10);
+  const book=BIBLE_BOOKS.find(b=>b.name===bookName||bookName.startsWith(b.name));
+  if(!book){showPage('bible');return;}
+  // Navigate
+  const scope=document.getElementById('bibleScopeSelect');
+  if(scope)scope.value='all';
+  bibleInitialized=false; // force re-init so populateBibleBookSelect runs
+  showPage('bible');
+  // After page shows, set state and highlight verse
+  setTimeout(()=>{
+    populateBibleBookSelect();
+    setBibleState(book.abbr,ch);
+    loadBibleChapter();
+    // Scroll and highlight after render
+    setTimeout(()=>_highlightBibleVerse(v,verse.text),120);
+  },80);
+}
+
+function _highlightBibleVerse(verseNum,verseText){
+  const list=document.getElementById('bibleResultList');
+  if(!list)return;
+  // Find the verse element by its number span
+  const nums=list.querySelectorAll('.bible-verse-num');
+  let targetVerse=null;
+  nums.forEach(el=>{
+    if(parseInt(el.textContent,10)===verseNum)targetVerse=el.closest('.bible-verse');
+  });
+  if(!targetVerse)return;
+  // Scroll into view
+  targetVerse.scrollIntoView({behavior:'smooth',block:'center'});
+  // Flash highlight
+  targetVerse.style.transition='background .15s';
+  targetVerse.style.background='rgba(90,124,69,.15)';
+  targetVerse.style.borderRadius='10px';
+  targetVerse.style.marginLeft='-6px';
+  targetVerse.style.paddingLeft='6px';
+  setTimeout(()=>{
+    targetVerse.style.background='rgba(90,124,69,.06)';
+    setTimeout(()=>{
+      targetVerse.style.background='';
+      targetVerse.style.borderRadius='';
+      targetVerse.style.marginLeft='';
+      targetVerse.style.paddingLeft='';
+    },1200);
+  },600);
+}
 function adjustBibleFont(dir){
   bibleFontSize=Math.max(12,Math.min(28,bibleFontSize+dir*2));
   localStorage.setItem('bibleFontSize',String(bibleFontSize));
@@ -3347,7 +3563,7 @@ function showPage(p){
     if(!allowed.includes(p)) p='att';
   }
   if(p==='settings'&&!requireAdmin())return;
-  if(['att','members','report','member-edit'].includes(p)&&!requireAttendanceManager())return;
+  if(['att','members','member-edit'].includes(p)&&!requireAttendanceManager())return;
   if(p==='worship-edit'&&!requireWorshipManager())return;
   document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
@@ -3365,8 +3581,8 @@ function showPage(p){
   if(p!=='bible'&&bibleFullscreen)exitBibleFullscreen();
   if(p==='home'){renderWeeklyPublic();}
   if(p==='att'){renderAttList();setTimeout(initAttStickyTabs,80);}
+  if(p==='att'&&window._attMainTab==='report')initReport();
   if(p==='members'){renderMemberList();setTimeout(initMemberStickyTabs,80);}
-  if(p==='report')initReport();
   if(p==='worship')renderWorshipPage();
   if(p==='worship-edit')fillWorshipEditPage();
   if(p==='bible')initBiblePage();
@@ -3539,7 +3755,7 @@ function _applyVerse(result){
     const vt=el.querySelector('.verse-text');
     const vr=el.querySelector('.verse-ref');
     if(vt)vt.textContent=result.text;
-    if(vr)vr.textContent='—— '+result.ref;
+    if(vr){vr.innerHTML=`—— ${result.ref} <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:11px;height:11px;opacity:.5;vertical-align:middle;"><polyline points="9 18 15 12 9 6"/></svg>`;}
   }
 }
 
@@ -3918,6 +4134,9 @@ function renderWeeklyPublic(){
           <span class="verse-card-label">今日金句</span>
         </div>
         <div class="verse-card-actions">
+          <button class="verse-action-btn" onclick="jumpToBibleFromVerse(window._currentDailyVerse)" title="在圣经页阅读此章">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>阅读
+          </button>
           <button class="verse-action-btn" onclick="bookmarkDailyVerse()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>收藏
           </button>
@@ -3928,7 +4147,7 @@ function renderWeeklyPublic(){
       </div>
       <div class="verse-quote-mark">"</div>
       <div class="verse-text">${dailyVerse.text}</div>
-      <div class="verse-ref">—— ${dailyVerse.ref}</div>
+      <div class="verse-ref" onclick="jumpToBibleFromVerse(window._currentDailyVerse)" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;float:right;transition:color .15s;" title="跳转到圣经">—— ${dailyVerse.ref} <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:11px;height:11px;opacity:.5;"><polyline points="9 18 15 12 9 6"/></svg></div>
     </div>`;
 
   // ── 聚会信息卡（内容随类型变化）──
@@ -4825,8 +5044,8 @@ function getTodayMeetingDOW(){
   return 0; // 非聚会日默认显示主日
 }
 // State: which DOW is being viewed on home page
-// 默认始终显示主日聚会，不跟随今日星期
-let homeScheduleDOW=0;
+// 默认跟随今日星期：周五显示周五、周六显示周六、其余默认主日
+let homeScheduleDOW=getTodayMeetingDOW();
 // 获取当前 homeScheduleDOW 对应的最近日期
 function getHomeMtDate(){
   // For Sun use selectedWorshipDate logic; for Fri/Sat find nearest
@@ -4965,7 +5184,6 @@ function renderScheduleBlock(info,showEdit){
       </div>
       <div class="schedule-item-body${isRunning?' running':''}">
         <div class="schedule-item-left">
-          <div class="schedule-item-time${isUpcoming?' upcoming':''}">${item.time}</div>
           <div class="schedule-item-name${isUpcoming?' upcoming':''}">${escapeHtml(item.title)}</div>
           <div class="schedule-item-dur">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -6862,6 +7080,111 @@ async function deleteGroup(id){
   }catch(e){showToast('❌ 失败');}
 }
 
+// ══ ATT MAIN TAB SWITCH ═════════════════════════════
+window._attMainTab='checkin';
+function switchAttMainTab(tab){
+  window._attMainTab=tab;
+  const checkinPanel=document.getElementById('attCheckinPanel');
+  const reportPanel=document.getElementById('attReportPanel');
+  const tabCheckin=document.getElementById('attMainTabCheckin');
+  const tabReport=document.getElementById('attMainTabReport');
+  if(tab==='checkin'){
+    checkinPanel.style.display='';
+    reportPanel.style.display='none';
+    tabCheckin.style.background='var(--sage)';tabCheckin.style.color='#fff';tabCheckin.style.fontWeight='700';tabCheckin.style.boxShadow='0 1px 4px rgba(45,140,82,.25)';
+    tabReport.style.background='transparent';tabReport.style.color='var(--muted)';tabReport.style.fontWeight='600';tabReport.style.boxShadow='none';
+  }else{
+    checkinPanel.style.display='none';
+    reportPanel.style.display='';
+    tabReport.style.background='var(--sage)';tabReport.style.color='#fff';tabReport.style.fontWeight='700';tabReport.style.boxShadow='0 1px 4px rgba(45,140,82,.25)';
+    tabCheckin.style.background='transparent';tabCheckin.style.color='var(--muted)';tabCheckin.style.fontWeight='600';tabCheckin.style.boxShadow='none';
+    initReport();
+  }
+}
+function downloadCurrentReport(){
+  if(reportTab==='month')downloadMonthReport();else downloadYearReport();
+}
+function copyCurrentReport(){
+  if(reportTab==='month')copyMonthReport();else copyYearReport();
+}
+
+// ══ EXPORT WEEK LIST SHEET ══════════════════════════
+function openExportWeekSheet(){
+  // populate date selector with past 12 sundays
+  const sel=document.getElementById('exportWeekDateSelect');
+  sel.innerHTML='';
+  const d=new Date();
+  const days=[];
+  for(let i=0;i<84;i++){
+    const dd=new Date(d);dd.setDate(d.getDate()-i);
+    if(dd.getDay()===0){
+      const s=getLocalDateString(dd);
+      days.push(s);
+    }
+  }
+  days.forEach(s=>{
+    const o=document.createElement('option');
+    o.value=s;
+    const dd=new Date(s+'T00:00:00');
+    o.textContent=s+(s===today?' (今日)':'');
+    sel.appendChild(o);
+  });
+  // default to current attDate if it's a sunday, else first sunday
+  if(days.includes(attDate))sel.value=attDate;
+  else if(days.length)sel.value=days[0];
+  document.getElementById('exportWeekTypeSelect').value='present';
+  renderExportWeekPreview();
+  openSheet('exportWeekSheet');
+}
+
+async function renderExportWeekPreview(){
+  const dateStr=document.getElementById('exportWeekDateSelect').value;
+  const type=document.getElementById('exportWeekTypeSelect').value;
+  const preview=document.getElementById('exportWeekPreview');
+  preview.innerHTML='<div class="loading" style="padding:16px 0;"><div class="spinner" style="margin:0 auto 6px;"></div>加载中…</div>';
+  let presentSet=attendance;
+  if(dateStr!==attDate){
+    // fetch from DB if different date
+    if(hasSupabaseConfig()){
+      try{
+        const rows=await sbGet('attendance',`date=eq.${dateStr}&select=member_id`);
+        presentSet=new Set(rows.map(r=>r.member_id));
+      }catch(e){presentSet=new Set();}
+    }else{
+      presentSet=new Set();
+    }
+  }
+  const present=members.filter(m=>presentSet.has(m.id));
+  const absent=members.filter(m=>!presentSet.has(m.id));
+  const list=type==='present'?present:type==='absent'?absent:members;
+  const label=type==='present'?'已出席':type==='absent'?'未出席':'全体';
+  preview.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <span style="font-size:13px;font-weight:700;color:var(--ink);">${dateStr} · ${label}名单</span>
+      <span style="font-size:12px;color:var(--muted);">共 ${list.length} 人</span>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;">
+      ${list.map((m,i)=>`<span style="background:#f4f4f2;border-radius:8px;padding:4px 10px;font-size:13px;">${i+1}. ${m.name}</span>`).join('')}
+      ${!list.length?'<div style="color:var(--muted);width:100%;text-align:center;padding:12px 0;">暂无数据</div>':''}
+    </div>`;
+  window._exportWeekData={dateStr,type,label,list,present:present.length,absent:absent.length,total:members.length};
+}
+
+function downloadExportWeekList(){
+  const d=window._exportWeekData;if(!d)return;
+  let txt=`教会出席记录 - ${d.dateStr}\n出席：${d.present} 人  未到：${d.absent} 人  总数：${d.total} 人\n\n【${d.label}名单】\n`;
+  txt+=d.list.map((m,i)=>`${i+1}. ${m.name}`).join('\n');
+  const b=new Blob([txt],{type:'text/plain;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);
+  a.download=`${d.label}_${d.dateStr}.txt`;a.click();showToast('✅ 已下载');
+}
+function copyExportWeekList(){
+  const d=window._exportWeekData;if(!d)return;
+  let txt=`教会出席记录 - ${d.dateStr}\n出席：${d.present} 人  未到：${d.absent} 人  总数：${d.total} 人\n\n【${d.label}名单】\n`;
+  txt+=d.list.map((m,i)=>`${i+1}. ${m.name}`).join('\n');
+  navigator.clipboard.writeText(txt).then(()=>showToast('✅ 已复制'));
+}
+
 // ══ REPORTS ════════════════════════════════════════
 function initReport(){
   // Set month picker to current month
@@ -7096,6 +7419,98 @@ function showToast(msg){
   const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
   clearTimeout(window._toastTimer);
   window._toastTimer=setTimeout(()=>t.classList.remove('show'),1200);
+}
+
+// ══ ATT MEMBERS SHEET ═══════════════════════════════
+let attSheetFilter='all';
+function openAttMembersSheet(){
+  attSheetFilter='all';
+  // reset tabs
+  document.querySelectorAll('.att-sheet-tab').forEach(t=>{
+    const isAll=t.dataset.tab==='all';
+    t.style.borderBottomColor=isAll?'var(--sage)':'transparent';
+    t.style.color=isAll?'var(--sage)':'var(--muted)';
+    t.style.fontWeight=isAll?'600':'400';
+  });
+  const search=document.getElementById('attMemberSheetSearch');
+  if(search)search.value='';
+  renderAttMembersSheet();
+  openSheet('attMembersSheet');
+}
+
+function setAttSheetTab(tab,el){
+  attSheetFilter=tab;
+  document.querySelectorAll('.att-sheet-tab').forEach(t=>{
+    const active=t.dataset.tab===tab;
+    t.style.borderBottomColor=active?'var(--sage)':'transparent';
+    t.style.color=active?'var(--sage)':'var(--muted)';
+    t.style.fontWeight=active?'600':'400';
+  });
+  renderAttMembersSheet();
+}
+
+function renderAttMembersSheet(){
+  const el=document.getElementById('attMembersSheetList');
+  if(!el)return;
+  const q=(document.getElementById('attMemberSheetSearch')?.value||'').trim().toLowerCase();
+  let list=members.map((m,idx)=>({...m,idx}));
+  if(q)list=list.filter(m=>m.name.toLowerCase().includes(q)||(m.phone&&m.phone.includes(q)));
+
+  const canEdit=canManageAttendance();
+
+  function memberSheetCard(m){
+    const g=getFamilyGroup(m);
+    const groupName=g&&!isUnassignedGroup(g)?g.name:'';
+    const miniG=m.ministry_group_id?groups.find(x=>x.id===m.ministry_group_id):null;
+    const tags=[];
+    if(groupName)tags.push('👨‍👩‍👧 '+groupName);
+    if(miniG)tags.push('⛪ '+miniG.name);
+    if(m.phone)tags.push('📱 '+m.phone);
+    return `<div class="member-row" style="cursor:default;">
+      <div class="member-num">${m.idx+1}</div>
+      <div style="flex:1;min-width:0;">
+        <div class="member-name">${m.name}</div>
+        ${tags.length?`<div class="member-sub">${tags.join('  ')}</div>`:''}
+      </div>
+      ${canEdit?`<button class="edit-btn" onclick="closeSheet('attMembersSheet');openMemberEdit(${m.id})">编辑</button>`:''}
+    </div>`;
+  }
+
+  if(attSheetFilter==='all'){
+    if(!list.length){el.innerHTML='<div class="empty">没有找到会众</div>';return;}
+    el.innerHTML=list.map(m=>memberSheetCard(m)).join('');
+    return;
+  }
+
+  if(attSheetFilter==='family'){
+    const familyGroups=groups.filter(g=>g.type==='family'&&g.name!=='未分配').sort((a,b)=>a.name.localeCompare(b.name,'zh-Hans-CN'));
+    let html='';
+    for(const g of familyGroups){
+      const gMembers=list.filter(m=>m.family_group_id===g.id);
+      if(!gMembers.length)continue;
+      html+=`<div style="background:var(--gold-light);border-radius:10px;padding:8px 12px;margin-bottom:6px;font-size:13px;font-weight:700;color:var(--ink);">👨‍👩‍👧 ${g.name} <span style="font-weight:400;color:var(--muted);">${gMembers.length}人</span></div>`;
+      html+=gMembers.map(m=>memberSheetCard(m)).join('');
+    }
+    const ungrouped=list.filter(m=>{const g=getFamilyGroup(m);return !m.family_group_id||isUnassignedGroup(g);});
+    if(ungrouped.length){
+      html+=`<div style="background:var(--parchment);border-radius:10px;padding:8px 12px;margin-bottom:6px;font-size:13px;font-weight:700;color:var(--muted);">未分配 <span style="font-weight:400;">${ungrouped.length}人</span></div>`;
+      html+=ungrouped.map(m=>memberSheetCard(m)).join('');
+    }
+    if(!html)html='<div class="empty">没有找到会众</div>';
+    el.innerHTML=html;return;
+  }
+
+  // ministry
+  const relevantGroups=groups.filter(g=>g.type==='ministry').sort((a,b)=>a.name.localeCompare(b.name,'zh-Hans-CN'));
+  let html='';
+  for(const g of relevantGroups){
+    const gMembers=list.filter(m=>m.ministry_group_id===g.id);
+    if(!gMembers.length)continue;
+    html+=`<div style="background:var(--gold-light);border-radius:10px;padding:8px 12px;margin-bottom:6px;font-size:13px;font-weight:700;color:var(--ink);">⛪ ${g.name} <span style="font-weight:400;color:var(--muted);">${gMembers.length}人</span></div>`;
+    html+=gMembers.map(m=>memberSheetCard(m)).join('');
+  }
+  if(!html)html='<div class="empty">没有找到会众</div>';
+  el.innerHTML=html;
 }
 
 // ══ INIT ════════════════════════════════════════════
