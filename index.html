@@ -3605,9 +3605,27 @@ const VERSE_SHARE_PHOTOS=[
 ];
 
 function _generateVerseShareImage(ref, text){
-  const W=900, PHOTO_H=520, TEXT_H=480, QR_AREA=170, TOTAL_H=PHOTO_H+TEXT_H;
+  const W=900, PHOTO_H=520, QR_AREA=190;
+  const TEXT_PADDING_TOP=80, TEXT_PADDING_BOTTOM=40;
+  const FONT_SIZE=44, LINE_H=72, MAX_W=756;
+  const REF_H=60; // 出处行高
 
-  // 先生成二维码 canvas（纯本地，无跨域问题）
+  // ── 先用离屏 canvas 测量换行 ──
+  const measure=document.createElement('canvas').getContext('2d');
+  measure.font=`${FONT_SIZE}px sans-serif`;
+  let line='', lines=[];
+  for(const ch of text){
+    const test=line+ch;
+    if(measure.measureText(test).width>MAX_W){lines.push(line);line=ch;}
+    else line=test;
+  }
+  if(line)lines.push(line);
+
+  // 动态文字区高度：顶部留白 + 出处 + 间距 + 正文行 + 底部留白 + 二维码区
+  const TEXT_BODY_H=lines.length*LINE_H;
+  const TEXT_H=TEXT_PADDING_TOP+REF_H+24+TEXT_BODY_H+TEXT_PADDING_BOTTOM+QR_AREA;
+  const TOTAL_H=PHOTO_H+TEXT_H;
+
   _loadQRLib(()=>{
     const qrWrap=document.createElement('div');
     qrWrap.style.cssText='position:fixed;left:-9999px;top:0;width:120px;height:120px;background:#f5f4f2;';
@@ -3620,7 +3638,6 @@ function _generateVerseShareImage(ref, text){
       const qrDataUrl=qrEl?(qrEl.tagName==='CANVAS'?qrEl.toDataURL():qrEl.src):null;
       document.body.removeChild(qrWrap);
 
-      // 尝试加载网络图片，失败则用渐变
       const photoUrl=VERSE_SHARE_PHOTOS[Math.floor(Math.random()*VERSE_SHARE_PHOTOS.length)];
       const img=new Image();
       img.crossOrigin='anonymous';
@@ -3637,33 +3654,44 @@ function _generateVerseShareImage(ref, text){
         ctx.fillStyle='#f5f4f2';
         ctx.fillRect(0,PHOTO_H,W,TEXT_H);
 
-        // 经文出处
-        ctx.fillStyle='#555';
-        ctx.font='bold 32px serif';
+        // 出处
+        ctx.fillStyle='#5a7c45';
+        ctx.font=`bold 30px serif`;
         ctx.textAlign='left';
-        ctx.fillText(ref,72,PHOTO_H+76);
+        ctx.fillText(ref,72,PHOTO_H+TEXT_PADDING_TOP);
 
-        // 经文正文（自动换行）
+        // 细线装饰
+        ctx.strokeStyle='#c8d9b8';
+        ctx.lineWidth=2;
+        ctx.setLineDash([]);
+        ctx.beginPath();
+        ctx.moveTo(72,PHOTO_H+TEXT_PADDING_TOP+14);
+        ctx.lineTo(72+ctx.measureText(ref).width+8,PHOTO_H+TEXT_PADDING_TOP+14);
+        ctx.stroke();
+
+        // 经文正文（已预先换好行）
         ctx.fillStyle='#1a1a1a';
-        ctx.font='44px sans-serif';
-        const MAX_W=760,LINE_H=74,START_Y=PHOTO_H+154;
-        let line='',lines=[];
-        for(const ch of text){
-          const test=line+ch;
-          if(ctx.measureText(test).width>MAX_W){lines.push(line);line=ch;}
-          else line=test;
-        }
-        if(line)lines.push(line);
+        ctx.font=`${FONT_SIZE}px sans-serif`;
+        const START_Y=PHOTO_H+TEXT_PADDING_TOP+REF_H+24;
+        // 左引号装饰
+        ctx.fillStyle='rgba(90,124,69,.18)';
+        ctx.font=`bold 140px serif`;
+        ctx.fillText('\u201C',44,START_Y+12);
+        // 正文
+        ctx.fillStyle='#1a1a1a';
+        ctx.font=`${FONT_SIZE}px sans-serif`;
         lines.forEach((l,i)=>ctx.fillText(l,72,START_Y+i*LINE_H));
 
         // 虚线分割
-        const divY=PHOTO_H+TEXT_H-QR_AREA-10;
-        ctx.setLineDash([12,10]);ctx.strokeStyle='#ccc';ctx.lineWidth=1.5;
+        const divY=TOTAL_H-QR_AREA+10;
+        ctx.setLineDash([12,10]);
+        ctx.strokeStyle='#ccc';
+        ctx.lineWidth=1.5;
         ctx.beginPath();ctx.moveTo(56,divY);ctx.lineTo(W-56,divY);ctx.stroke();
         ctx.setLineDash([]);
 
         // 二维码
-        const QR_X=56,QR_Y=divY+26,QR_S=108;
+        const QR_X=56, QR_Y=divY+26, QR_S=108;
         function afterQR(){
           _drawShareFooter(ctx,QR_X+QR_S+22,QR_Y);
           _presentVerseImage(canvas);
