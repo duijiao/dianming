@@ -3459,8 +3459,10 @@ function _todayDateKey(){
 function _seededVerseEntry(){
   const n=new Date();
   const seed=n.getFullYear()*10000+(n.getMonth()+1)*100+n.getDate();
-  const idx=Math.abs(seed)%VERSE_SCHEDULE.length;
-  return VERSE_SCHEDULE[idx];
+  // 过滤掉各章第一节，避免显示章节开头句
+  const pool=VERSE_SCHEDULE.filter(e=>e.v!==1);
+  const idx=Math.abs(seed)%pool.length;
+  return pool[idx];
 }
 
 function getTodayVerse(){
@@ -3470,12 +3472,39 @@ function getTodayVerse(){
     const cached=JSON.parse(localStorage.getItem(cacheKey)||'null');
     if(cached&&cached.text&&cached.ref)return cached;
   }catch(_){}
-  // 缓存未命中：返回内置备用，同时异步拉取 API
+  // 缓存未命中：优先从本地圣经同步获取，否则用内置备用并异步拉取 API
+  if(window.LOCAL_BIBLE&&Object.keys(window.LOCAL_BIBLE).length>0){
+    const result=_getVerseFromLocal();
+    if(result){
+      try{localStorage.setItem(cacheKey,JSON.stringify(result));}catch(_){}
+      return result;
+    }
+  }
   const n=new Date();
   const seed=n.getFullYear()*10000+(n.getMonth()+1)*100+n.getDate();
   const fbIdx=Math.abs(seed)%DAILY_VERSES_FALLBACK.length;
   _fetchAndCacheTodayVerse();  // 异步，不阻塞渲染
   return DAILY_VERSES_FALLBACK[fbIdx];
+}
+
+function _getVerseFromLocal(){
+  // 仅从诗歌书（诗篇/箴言/传道书）和新约取经文
+  const ALLOWED_ABBRS=new Set(['PSA','PRO','ECC']);
+  const books=BIBLE_BOOKS.filter(b=>
+    window.LOCAL_BIBLE[b.abbr] &&
+    (ALLOWED_ABBRS.has(b.abbr) || !isOldTestament(b.abbr))
+  );
+  if(!books.length)return null;
+  const n=new Date();
+  const seed=n.getFullYear()*10000+(n.getMonth()+1)*100+n.getDate();
+  function sr(s){let x=Math.sin(s+1)*10000;return x-Math.floor(x);}
+  const book=books[Math.floor(sr(seed)*books.length)];
+  const chapters=Object.keys(window.LOCAL_BIBLE[book.abbr]).map(Number);
+  const ch=chapters[Math.floor(sr(seed+1)*chapters.length)];
+  const vs=window.LOCAL_BIBLE[book.abbr][ch]||[];
+  if(!vs.length)return null;
+  const v=vs[Math.floor(sr(seed+2)*vs.length)];
+  return {text:v.text,ref:`${book.name} ${ch}:${v.verse}`};
 }
 
 async function _fetchAndCacheTodayVerse(){
@@ -3514,33 +3543,10 @@ async function _fetchAndCacheTodayVerse(){
       const vr=el.querySelector('.verse-ref');
       if(vt)vt.textContent=result.text;
       if(vr)vr.textContent='—— '+result.ref;
-      // 同步更新 dailyVerse 变量供分享使用
       if(window._currentDailyVerse)window._currentDailyVerse=result;
     }
   }catch(e){
-    // API 失败：尝试从本地 bible.txt 获取
-    if(window.LOCAL_BIBLE&&Object.keys(window.LOCAL_BIBLE).length>0){
-      const books=BIBLE_BOOKS.filter(b=>window.LOCAL_BIBLE[b.abbr]);
-      if(books.length>0){
-        const n=new Date();
-        const seed=n.getFullYear()*10000+(n.getMonth()+1)*100+n.getDate();
-        function sr(s){let x=Math.sin(s+1)*10000;return x-Math.floor(x);}
-        const book=books[Math.floor(sr(seed)*books.length)];
-        const chapters=Object.keys(window.LOCAL_BIBLE[book.abbr]).map(Number);
-        const ch=chapters[Math.floor(sr(seed+1)*chapters.length)];
-        const vs=window.LOCAL_BIBLE[book.abbr][ch]||[];
-        if(vs.length>0){
-          const v=vs[Math.floor(sr(seed+2)*vs.length)];
-          const result={text:v.text,ref:`${book.name} ${ch}:${v.verse}`};
-          localStorage.setItem(cacheKey,JSON.stringify(result));
-          const el=document.getElementById('weeklyPublicContent');
-          if(el&&el.querySelector('.verse-text')){
-            el.querySelector('.verse-text').textContent=result.text;
-            el.querySelector('.verse-ref').textContent='—— '+result.ref;
-          }
-        }
-      }
-    }
+    // API 失败时静默，缓存中已有本地或备用结果
   }
 }
 function bookmarkDailyVerse(){
