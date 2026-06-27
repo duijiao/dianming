@@ -1338,9 +1338,9 @@ body.bible-fullscreen .bible-fab{
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:16px;height:16px;"><polyline points="20 6 9 17 4 12"/></svg>
       完成签到
     </button>
-    <button class="btn btn-outline" style="flex:1;justify-content:center;padding:11px 8px;font-size:14px;border-radius:14px;" onclick="markAll(true)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-      快速签到
+    <button class="btn btn-outline" style="flex:1;justify-content:center;padding:11px 8px;font-size:14px;border-radius:14px;" onclick="openNewMemberSheet(false)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+      添加会众
     </button>
     <button class="btn btn-outline" style="flex:1;justify-content:center;padding:11px 8px;font-size:14px;border-radius:14px;" onclick="openAttMoreMenu()">
       <span style="letter-spacing:2px;font-size:16px;line-height:1;">···</span>
@@ -2736,6 +2736,19 @@ function doLogin(){
     localStorage.setItem('churchCurrentUser',JSON.stringify(currentUser));
     closeAdminLogin();
     updateAdminUI();
+    // 账号1（签到管理）登录后直接跳转到签到页
+    if(normal.role==='attendance'){
+      // 直接操作 DOM，绕过所有可能被覆盖的逻辑
+      document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+      document.getElementById('page-att').classList.add('active');
+      const nav=document.getElementById('nav-att');
+      if(nav)nav.classList.add('active');
+      document.getElementById('attHeader').style.display='block';
+      const ab=document.getElementById('attActionBtns');
+      if(ab)ab.style.display='flex';
+      renderAttList();
+    }
   }else{document.getElementById('loginErr').style.display='block';}
 }
 function doLogout(){localStorage.removeItem('churchCurrentUser');currentUser={role:'guest',label:'游客模式'};isAdmin=false;updateAdminUI();showToast('已回到游客模式');}
@@ -3328,6 +3341,11 @@ function toggleBible(){
 
 // ══ PAGE NAV ══════════════════════════════════════
 function showPage(p){
+  // 签到账号：只允许跳转到 att 相关页面，其他一律锁定在 att
+  if(currentUser&&currentUser.role==='attendance'){
+    const allowed=['att','member-edit'];
+    if(!allowed.includes(p)) p='att';
+  }
   if(p==='settings'&&!requireAdmin())return;
   if(['att','members','report','member-edit'].includes(p)&&!requireAttendanceManager())return;
   if(p==='worship-edit'&&!requireWorshipManager())return;
@@ -5827,6 +5845,10 @@ async function bootApp(showToastOnMissing=false){
   initDailyVerse();
   renderWeeklyPublic();
   renderWorshipPage();
+  // 页面加载时，如果已登录为签到账号，直接跳转到签到页
+  if(currentUser.role==='attendance'){
+    showPage('att');
+  }
   if(!hasSupabaseConfig()){
     setSyncErr();
     if(document.getElementById('settingTotal'))document.getElementById('settingTotal').textContent=members.length;
@@ -5843,6 +5865,10 @@ async function bootApp(showToastOnMissing=false){
     // 处理二维码扫码跳转
     const _qrp=new URLSearchParams(location.search);
     if(_qrp.get('qrcheck')||_qrp.get('qrself'))handleQrHash();
+    // 签到账号加载完成后保持在签到页
+    if(currentUser.role==='attendance'){
+      showPage('att');
+    }
   }catch(e){
     setSyncErr();
     console.error(e);
@@ -5908,6 +5934,17 @@ async function loadAll(){
     attendance=new Set(att.map(a=>a.member_id));
     setSynced();renderAttList();renderMemberList();
     if(canManageAttendance())ensureDefaultFamilyGroupsAndAssignments().catch(e=>{setSyncErr();showToast('❌ 小组同步失败');console.error(e);});
+    // 签到账号数据加载完成后强制显示签到页
+    if(currentUser.role==='attendance'){
+      document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+      document.getElementById('page-att').classList.add('active');
+      const nav=document.getElementById('nav-att');
+      if(nav)nav.classList.add('active');
+      document.getElementById('attHeader').style.display='block';
+      const ab=document.getElementById('attActionBtns');
+      if(ab)ab.style.display='flex';
+    }
   }catch(e){setSyncErr();showToast('❌ 连接失败');console.error(e);}
 }
 
@@ -5980,7 +6017,6 @@ function setAttFilter(f,el){
 function openAttMoreMenu(){
   const items=[
     {label:'📱 二维码签到',fn:()=>openQrCheckinSheet()},
-    {label:'＋ 添加会众',fn:()=>openNewMemberSheet(false)},
     {label:'📋 签到汇总',fn:()=>openAbsentSheet()},
     {label:'🗑 清空签到',fn:()=>markAll(false)},
   ];
@@ -6445,42 +6481,75 @@ async function finalizeAttendance(){
   if(!requireAttendanceManager())return;
   today=getLocalDateString();
   document.getElementById('dateDisplay').textContent=today;
-  const existing=await fetchServiceRecordByDate(today);
-  if(existing&&!confirm('今天已经保存过签到汇总，是否覆盖？'))return;
-  if(!confirm('确认保存今天的签到汇总吗？保存后月报将读取这份记录。'))return;
 
-  const presentMembers=members.filter(m=>attendance.has(m.id)).map(m=>({id:m.id,name:m.name}));
-  const absentMembers=members.filter(m=>!attendance.has(m.id)).map(m=>({id:m.id,name:m.name}));
-  const totalCount=members.length;
-  const presentCount=presentMembers.length;
-  const record={
-    service_date:today,
-    total_count:totalCount,
-    present_count:presentCount,
-    absent_count:absentMembers.length,
-    attendance_rate:totalCount?Math.round(presentCount/totalCount*100):0,
-    present_members_json:presentMembers,
-    absent_members_json:absentMembers,
-    created_at:existing?.created_at||new Date().toISOString(),
-    updated_at:new Date().toISOString()
-  };
-
-  try{
-    setSyncing();
-    const result=await saveServiceRecord(record);
-    setSynced();
-    if(document.getElementById('monthPicker')?.value===today.slice(0,7))buildMonthReport();
-    const msg=result.target==='service_records'
-      ? '✅ 本次签到已完成'
-      : result.target==='app_settings'
-        ? '✅ 已保存到云端汇总'
-        : '已保存到本地汇总';
-    showToast(msg);
-  }catch(e){
-    setSyncErr();
-    console.error(e);
-    showToast('❌ 保存失败');
+  async function doFinalize(overwrite){
+    if(!overwrite){
+      const existing=await fetchServiceRecordByDate(today);
+      if(existing){
+        // Ask to overwrite
+        const sheet=document.createElement('div');
+        sheet.className='sheet active';
+        sheet.innerHTML=`<div class="sheet-inner" style="max-width:480px;text-align:center;">
+          <div style="font-size:44px;margin-bottom:12px;">📋</div>
+          <div style="font-family:'Noto Serif SC',serif;font-size:18px;font-weight:700;margin-bottom:8px;">已有签到记录</div>
+          <div style="font-size:14px;color:var(--muted);margin-bottom:22px;">今天已经保存过签到汇总，是否覆盖？</div>
+          <div style="display:flex;gap:10px;">
+            <button class="btn btn-outline" style="flex:1;" onclick="this.closest('.sheet').remove()">取消</button>
+            <button class="btn btn-gold" style="flex:1;" onclick="this.closest('.sheet').remove();doFinalizeConfirmed();">覆盖保存</button>
+          </div>
+        </div>`;
+        sheet.onclick=e=>{if(e.target===sheet)sheet.remove();};
+        document.body.appendChild(sheet);
+        window.doFinalizeConfirmed=()=>doFinalize(true);
+        return;
+      }
+    }
+    // Show confirm dialog
+    const sheet=document.createElement('div');
+    sheet.className='sheet active';
+    sheet.innerHTML=`<div class="sheet-inner" style="max-width:480px;text-align:center;">
+      <div style="font-size:44px;margin-bottom:12px;">✅</div>
+      <div style="font-family:'Noto Serif SC',serif;font-size:18px;font-weight:700;margin-bottom:8px;">确认完成签到</div>
+      <div style="font-size:14px;color:var(--muted);margin-bottom:22px;">保存今天的签到汇总？保存后月报将读取这份记录。</div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-outline" style="flex:1;" onclick="this.closest('.sheet').remove()">取消</button>
+        <button class="btn btn-gold" style="flex:1;" onclick="this.closest('.sheet').remove();doFinalizeSave();">确定</button>
+      </div>
+    </div>`;
+    sheet.onclick=e=>{if(e.target===sheet)sheet.remove();};
+    document.body.appendChild(sheet);
+    window.doFinalizeSave=async()=>{
+      const presentMembers=members.filter(m=>attendance.has(m.id)).map(m=>({id:m.id,name:m.name}));
+      const absentMembers=members.filter(m=>!attendance.has(m.id)).map(m=>({id:m.id,name:m.name}));
+      const totalCount=members.length;
+      const presentCount=presentMembers.length;
+      const record={
+        service_date:today,
+        total_count:totalCount,
+        present_count:presentCount,
+        absent_count:absentMembers.length,
+        attendance_rate:totalCount?Math.round(presentCount/totalCount*100):0,
+        present_members_json:presentMembers,
+        absent_members_json:absentMembers,
+        created_at:(await fetchServiceRecordByDate(today))?.created_at||new Date().toISOString(),
+        updated_at:new Date().toISOString()
+      };
+      try{
+        setSyncing();
+        await saveServiceRecord(record);
+        setSynced();
+        if(document.getElementById('monthPicker')?.value===today.slice(0,7))buildMonthReport();
+        showToast('✅ 签到汇总已保存');
+        // 直接弹出签到汇总
+        openAbsentSheet();
+      }catch(e){
+        setSyncErr();
+        console.error(e);
+        showToast('❌ 保存失败');
+      }
+    };
   }
+  doFinalize(false);
 }
 
 // ══ ABSENT SHEET ══════════════════════════════════
