@@ -2161,8 +2161,6 @@ window.BIBLE_LOAD_PROMISE = fetch('./cmn-cu89s_vpl.txt')
         document.getElementById('page-bible')?.classList.contains('active')) {
       loadBibleChapter();
     }
-    // 本地圣经加载完成后，若金句仍为内置备用，则用本地数据刷新
-    if (typeof _refreshVerseFromLocal === 'function') _refreshVerseFromLocal();
   })
   .catch(() => { window.LOCAL_BIBLE = {}; });
 </script>
@@ -3453,9 +3451,15 @@ const DAILY_VERSES_FALLBACK=[
   {text:'你要以耶和华为乐，他就将你心里所求的赐给你。',ref:'诗篇 37:4'},
 ];
 
+/* ══ 今日金句系统 ══
+   优先级：① 当日缓存 → ② 本地圣经（诗歌书+新约）→ ③ API → ④ 内置备用
+   initDailyVerse() 在 bootApp 启动时异步调用一次，结果写入 window._currentDailyVerse
+   renderWeeklyPublic() 若金句尚未就绪则显示占位符，就绪后精准刷新 DOM 不重绘整页
+*/
+
 function _todayDateKey(){
-  const n=new Date();
-  return `${n.getFullYear()}${n.getMonth()+1}${n.getDate()}`;
+  // 使用与 getLocalDateString 一致的 YYYY-MM-DD 格式，避免跨月孤儿缓存
+  return getLocalDateString();
 }
 
 function _seededVerseEntry(){
@@ -3467,67 +3471,13 @@ function _seededVerseEntry(){
   return pool[idx];
 }
 
-function getTodayVerse(){
-  const cacheKey='churchDailyVerse_'+_todayDateKey();
-  // ① 当日缓存
-  try{
-    const cached=JSON.parse(localStorage.getItem(cacheKey)||'null');
-    if(cached&&cached.text&&cached.ref)return cached;
-  }catch(_){}
-  // ② 本地圣经（同步可用时）
-  if(window.LOCAL_BIBLE&&Object.keys(window.LOCAL_BIBLE).length>0){
-    const result=_getVerseFromLocal();
-    if(result){
-      try{localStorage.setItem(cacheKey,JSON.stringify(result));}catch(_){}
-      return result;
-    }
-  }
-  // ③ 内置备用 + 异步拉取（本地圣经尚未加载 or 加载失败）
-  const n=new Date();
-  const seed=n.getFullYear()*10000+(n.getMonth()+1)*100+n.getDate();
-  const fbIdx=Math.abs(seed)%DAILY_VERSES_FALLBACK.length;
-  // 若本地圣经还在加载中，等它完成后再刷新（不触发 API 请求）
-  if(window.LOCAL_BIBLE===null){
-    // BIBLE_LOAD_PROMISE 完成后会调用 _refreshVerseFromLocal
-  } else {
-    _fetchAndCacheTodayVerse(); // 本地也没有才走 API
-  }
-  return DAILY_VERSES_FALLBACK[fbIdx];
-}
-
-// 本地圣经加载完成后调用：若当日缓存仍是内置备用，用本地数据替换并刷新 UI
-function _refreshVerseFromLocal(){
-  const cacheKey='churchDailyVerse_'+_todayDateKey();
-  // 已有非备用缓存则跳过
-  try{
-    const cached=JSON.parse(localStorage.getItem(cacheKey)||'null');
-    if(cached&&cached.text&&cached.ref){
-      // 检查是否是内置备用（ref 格式无冒号分章节，如"诗篇 23:1"有冒号，备用也有…直接跳过，已有缓存就够）
-      return;
-    }
-  }catch(_){}
-  // 无缓存 → 用本地取节
-  const result=_getVerseFromLocal();
-  if(!result)return;
-  try{localStorage.setItem(cacheKey,JSON.stringify(result));}catch(_){}
-  // 更新内存状态
-  window._currentDailyVerse=result;
-  // 静默刷新金句卡片 DOM
-  const el=document.getElementById('weeklyPublicContent');
-  if(el){
-    const vt=el.querySelector('.verse-text');
-    const vr=el.querySelector('.verse-ref');
-    if(vt)vt.textContent=result.text;
-    if(vr)vr.textContent='—— '+result.ref;
-  }
-}
-
 function _getVerseFromLocal(){
+  if(!window.LOCAL_BIBLE||!Object.keys(window.LOCAL_BIBLE).length)return null;
   // 仅从诗歌书（诗篇/箴言/传道书）和新约取经文
   const ALLOWED_ABBRS=new Set(['PSA','PRO','ECC']);
   const books=BIBLE_BOOKS.filter(b=>
     window.LOCAL_BIBLE[b.abbr] &&
-    (ALLOWED_ABBRS.has(b.abbr) || !isOldTestament(b.abbr))
+    (ALLOWED_ABBRS.has(b.abbr)||!isOldTestament(b.abbr))
   );
   if(!books.length)return null;
   const n=new Date();
@@ -3542,47 +3492,87 @@ function _getVerseFromLocal(){
   return {text:v.text,ref:`${book.name} ${ch}:${v.verse}`};
 }
 
-async function _fetchAndCacheTodayVerse(){
+async function _fetchVerseFromApi(){
+  const entry=_seededVerseEntry();
+  const url=`https://bible.helloao.org/api/CNV/${entry.book}/${entry.ch}.json`;
+  const res=await fetch(url,{signal:AbortSignal.timeout?AbortSignal.timeout(6000):undefined});
+  if(!res.ok)throw new Error('HTTP '+res.status);
+  const data=await res.json();
+  const verses=data?.chapter?.content;
+  if(!verses)throw new Error('no content');
+  let verseText='';
+  for(const item of verses){
+    if(item.type==='verse'&&Number(item.number)===entry.v){
+      verseText=(item.content||[]).map(c=>typeof c==='string'?c:(c.text||'')).join('').trim();
+      break;
+    }
+  }
+  if(!verseText)throw new Error('verse not found');
+  return {text:verseText,ref:`${entry.name} ${entry.ch}:${entry.v}`};
+}
+
+// 将金句写入缓存并更新 UI（不重绘整页）
+function _applyVerse(result){
   const cacheKey='churchDailyVerse_'+_todayDateKey();
-  // 已有缓存则跳过
+  window._currentDailyVerse=result;
+  try{localStorage.setItem(cacheKey,JSON.stringify(result));}catch(_){}
+  const el=document.getElementById('weeklyPublicContent');
+  if(el){
+    const vt=el.querySelector('.verse-text');
+    const vr=el.querySelector('.verse-ref');
+    if(vt)vt.textContent=result.text;
+    if(vr)vr.textContent='—— '+result.ref;
+  }
+}
+
+// 主入口：进入网站时调用一次，异步解析后精准刷新 UI
+async function initDailyVerse(){
+  const cacheKey='churchDailyVerse_'+_todayDateKey();
+
+  // ① 当日缓存
   try{
     const cached=JSON.parse(localStorage.getItem(cacheKey)||'null');
-    if(cached&&cached.text)return;
+    if(cached?.text&&cached?.ref){
+      window._currentDailyVerse=cached;
+      return cached;
+    }
   }catch(_){}
 
-  const entry=_seededVerseEntry();
-  // 中文和合本 API：bible.helloao.org，支持 CORS，无需 Key
-  const url=`https://bible.helloao.org/api/CNV/${entry.book}/${entry.ch}.json`;
+  // ② 等本地圣经加载完成（BIBLE_LOAD_PROMISE 由页面顶部 script 创建）
   try{
-    const res=await fetch(url,{signal:AbortSignal.timeout?AbortSignal.timeout(6000):undefined});
-    if(!res.ok)throw new Error('HTTP '+res.status);
-    const data=await res.json();
-    // data.chapter.content 是节数组
-    const verses=data&&data.chapter&&data.chapter.content;
-    if(!verses)throw new Error('no content');
-    // 找目标节
-    let verseText='';
-    for(const item of verses){
-      if(item.type==='verse'&&Number(item.number)===entry.v){
-        verseText=(item.content||[]).map(c=>typeof c==='string'?c:(c.text||'')).join('').trim();
-        break;
-      }
-    }
-    if(!verseText)throw new Error('verse not found');
-    const result={text:verseText,ref:`${entry.name} ${entry.ch}:${entry.v}`};
-    localStorage.setItem(cacheKey,JSON.stringify(result));
-    // 静默刷新首页金句
-    const el=document.getElementById('weeklyPublicContent');
-    if(el&&el.querySelector('.verse-text')){
-      const vt=el.querySelector('.verse-text');
-      const vr=el.querySelector('.verse-ref');
-      if(vt)vt.textContent=result.text;
-      if(vr)vr.textContent='—— '+result.ref;
-      if(window._currentDailyVerse)window._currentDailyVerse=result;
-    }
-  }catch(e){
-    // API 失败时静默，缓存中已有本地或备用结果
-  }
+    await (window.BIBLE_LOAD_PROMISE||Promise.resolve());
+  }catch(_){}
+
+  // ③ 本地圣经
+  const local=_getVerseFromLocal();
+  if(local){_applyVerse(local);return local;}
+
+  // ④ API
+  try{
+    const api=await _fetchVerseFromApi();
+    _applyVerse(api);return api;
+  }catch(_){}
+
+  // ⑤ 内置备用
+  const n=new Date();
+  const seed=n.getFullYear()*10000+(n.getMonth()+1)*100+n.getDate();
+  const fallback=DAILY_VERSES_FALLBACK[Math.abs(seed)%DAILY_VERSES_FALLBACK.length];
+  _applyVerse(fallback);return fallback;
+}
+
+// 同步快照（渲染时用，可能是缓存或占位）
+function getTodayVerse(){
+  // 已有内存结果直接返回
+  if(window._currentDailyVerse)return window._currentDailyVerse;
+  // 尝试当日缓存
+  try{
+    const cached=JSON.parse(localStorage.getItem('churchDailyVerse_'+_todayDateKey())||'null');
+    if(cached?.text&&cached?.ref){window._currentDailyVerse=cached;return cached;}
+  }catch(_){}
+  // 返回占位符，initDailyVerse 完成后会通过 _applyVerse 更新 DOM
+  const n=new Date();
+  const seed=n.getFullYear()*10000+(n.getMonth()+1)*100+n.getDate();
+  return DAILY_VERSES_FALLBACK[Math.abs(seed)%DAILY_VERSES_FALLBACK.length];
 }
 function bookmarkDailyVerse(){
   const dailyVerse=window._currentDailyVerse||{};
@@ -5805,6 +5795,8 @@ async function bootApp(showToastOnMissing=false){
   const adminInput=document.getElementById('newUser');
   if(adminInput)adminInput.value=ADMIN.user;
   updateAdminUI();
+  // 启动时异步初始化金句（不阻塞页面渲染，完成后精准刷新金句卡片）
+  initDailyVerse();
   renderWeeklyPublic();
   renderWorshipPage();
   if(!hasSupabaseConfig()){
