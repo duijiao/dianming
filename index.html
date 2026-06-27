@@ -861,68 +861,180 @@ body.bible-fullscreen .bible-fab{
 .bible-nav-btn:active:not(:disabled){border-color:var(--sage);color:var(--sage);}
 .bible-nav-btn:disabled{opacity:.35;cursor:not-allowed;}
 
-/* ══ 聚会流程时间轴 ══ */
+/* ══ 聚会流程时间轴（新版） ══ */
 .schedule-card{
-  background:#fff;border-radius:20px;margin:0 0 12px;
-  box-shadow:0 2px 12px rgba(0,0,0,.06);overflow:hidden;
+  background:#f4f6f3;border-radius:22px;margin:0 0 12px;
+  box-shadow:0 3px 16px rgba(0,0,0,.07);overflow:hidden;
+  padding:14px;
 }
+/* 卡片头部 */
 .schedule-card-head{
   display:flex;align-items:center;justify-content:space-between;
-  padding:14px 16px 10px;
+  margin-bottom:12px;
 }
-.schedule-card-head-left{display:flex;align-items:center;gap:8px;}
+.schedule-card-head-left{display:flex;align-items:center;gap:10px;}
 .schedule-head-icon{
-  width:30px;height:30px;border-radius:9px;flex-shrink:0;
+  width:36px;height:36px;border-radius:11px;flex-shrink:0;
   background:linear-gradient(135deg,#2d8c52,#48c274);
   display:flex;align-items:center;justify-content:center;
+  box-shadow:0 2px 8px rgba(45,140,82,.22);
 }
-.schedule-head-icon svg{width:15px;height:15px;color:#fff;}
-.schedule-card-title{font-size:15px;font-weight:700;color:var(--ink);}
+.schedule-head-icon svg{width:18px;height:18px;color:#fff;}
+.schedule-card-title{font-size:16px;font-weight:700;color:var(--ink);}
 .schedule-edit-btn{
   font-size:12px;color:var(--sage);background:rgba(90,124,69,.08);
-  border:1px solid rgba(90,124,69,.25);border-radius:8px;
-  padding:4px 10px;cursor:pointer;white-space:nowrap;
-  font-family:'Noto Sans SC',sans-serif;
+  border:1px solid rgba(90,124,69,.25);border-radius:10px;
+  padding:6px 12px;cursor:pointer;white-space:nowrap;
+  font-family:'Noto Sans SC',sans-serif;font-weight:600;
 }
-.schedule-timeline{padding:4px 16px 16px;}
+.schedule-edit-btn:active{background:rgba(90,124,69,.18);}
+
+/* 头部元信息行 */
+.schedule-meta-row{
+  display:flex;align-items:center;gap:14px;
+  font-size:12px;color:var(--muted);margin-bottom:12px;flex-wrap:wrap;
+}
+.schedule-meta-row span{display:flex;align-items:center;gap:4px;}
+.schedule-meta-row svg{width:13px;height:13px;flex-shrink:0;}
+
+/* 当前进行中大横幅 */
+.schedule-active-banner{
+  background:#fff;border-radius:16px;padding:14px 16px 12px;
+  margin-bottom:10px;border:1px solid rgba(45,140,82,.12);
+  box-shadow:0 2px 8px rgba(45,140,82,.08);
+}
+.schedule-active-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.schedule-active-badge{
+  background:#2d8c52;color:#fff;font-size:11px;font-weight:700;
+  border-radius:6px;padding:2px 8px;letter-spacing:.3px;
+}
+.schedule-active-time-range{font-size:13px;color:var(--muted);font-weight:500;}
+.schedule-active-elapsed{font-size:12px;color:#2d8c52;font-weight:700;}
+.schedule-active-title{font-size:18px;font-weight:800;color:var(--ink);margin-bottom:10px;line-height:1.2;}
+/* 进度条 */
+.schedule-progress-row{display:flex;align-items:center;gap:8px;}
+.schedule-progress-bar{
+  flex:1;height:8px;background:#e8f3e0;border-radius:99px;overflow:hidden;
+}
+.schedule-progress-fill{
+  height:100%;background:linear-gradient(90deg,#2d8c52,#48c274);
+  border-radius:99px;transition:width .4s ease;
+}
+.schedule-progress-pct{font-size:12px;color:#2d8c52;font-weight:700;white-space:nowrap;}
+
+/* 时间线列表区域 */
+.schedule-timeline{display:flex;flex-direction:column;gap:0;}
+
+/* 每个流程项 */
 .schedule-item{
-  display:flex;align-items:flex-start;gap:12px;
-  padding:8px 0;position:relative;
+  display:flex;align-items:center;gap:0;
+  position:relative;
 }
-.schedule-item:not(:last-child)::after{
-  content:'';position:absolute;left:14px;top:32px;
-  width:2px;bottom:-8px;
-  background:linear-gradient(to bottom,var(--sage-light),transparent);
+/* 竖线 */
+.schedule-item:not(:last-child) .schedule-dot-col::after{
+  content:'';position:absolute;left:50%;top:calc(50% + 16px);
+  transform:translateX(-50%);
+  width:2px;height:calc(100% - 4px);
+  background:linear-gradient(to bottom,var(--sage-light),rgba(200,217,184,.2));
+  border-radius:2px;z-index:0;
 }
-.schedule-dot-wrap{display:flex;flex-direction:column;align-items:center;flex-shrink:0;padding-top:2px;}
+.schedule-dot-col{
+  width:34px;flex-shrink:0;display:flex;flex-direction:column;
+  align-items:center;position:relative;padding:6px 0;
+}
 .schedule-dot{
   width:28px;height:28px;border-radius:50%;flex-shrink:0;
-  background:var(--gold-light);border:2px solid var(--sage-light);
+  background:#f4f9f1;border:2px solid #c8d9b8;
   display:flex;align-items:center;justify-content:center;
+  transition:all .2s;z-index:1;position:relative;
 }
-.schedule-dot svg{width:13px;height:13px;color:var(--sage);}
-.schedule-dot.active{background:var(--sage);border-color:var(--sage);}
-.schedule-dot.active svg{color:#fff;}
-.schedule-info{flex:1;padding-top:3px;}
-.schedule-time{font-size:12px;color:var(--muted);font-weight:600;margin-bottom:2px;}
-.schedule-title-text{font-size:14px;font-weight:700;color:var(--ink);}
-.schedule-note{font-size:12px;color:var(--muted);margin-top:2px;line-height:1.5;}
-.schedule-empty{padding:16px;text-align:center;color:#bbb;font-size:13px;}
+.schedule-dot svg{width:13px;height:13px;color:#a0b890;}
+.schedule-dot.done{background:#2d8c52;border-color:#2d8c52;}
+.schedule-dot.done svg{color:#fff;}
+.schedule-dot.running{
+  background:#2d8c52;border-color:#2d8c52;
+  box-shadow:0 0 0 4px rgba(45,140,82,.18);
+}
+.schedule-dot.running svg{color:#fff;}
+.schedule-dot.upcoming{background:#fff;border-color:#d8d4cc;}
+.schedule-dot.upcoming svg{color:#c8c4bc;}
+
+/* 项目内容卡片 */
+.schedule-item-body{
+  flex:1;background:#fff;border-radius:14px;padding:11px 14px;
+  margin:4px 0;display:flex;align-items:center;gap:10px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+  border:1px solid rgba(0,0,0,.05);
+  margin-left:6px;
+}
+.schedule-item-body.running{
+  background:#f0f8f2;border-color:rgba(45,140,82,.2);
+  box-shadow:0 2px 8px rgba(45,140,82,.1);
+}
+.schedule-item-left{flex:1;min-width:0;}
+.schedule-item-time{
+  font-size:13px;font-weight:700;
+  color:#2d8c52;line-height:1;margin-bottom:3px;
+}
+.schedule-item-time.upcoming{color:var(--muted);}
+.schedule-item-name{font-size:14px;font-weight:700;color:var(--ink);line-height:1.2;}
+.schedule-item-name.upcoming{color:#888;}
+.schedule-item-dur{display:flex;align-items:center;gap:3px;font-size:12px;color:var(--muted);margin-top:3px;}
+.schedule-item-dur svg{width:12px;height:12px;}
+
+/* 状态徽章 */
+.schedule-status-badge{
+  font-size:12px;font-weight:700;border-radius:8px;
+  padding:4px 10px;white-space:nowrap;flex-shrink:0;
+}
+.badge-done{background:#f0f0ee;color:#999;}
+.badge-running{background:#2d8c52;color:#fff;}
+.badge-upcoming{background:#f0f0ee;color:#bbb;}
+
+/* 当前时间指示线 */
+.schedule-now-line{
+  display:flex;align-items:center;gap:6px;
+  padding:4px 0 4px 40px;
+  font-size:12px;font-weight:700;color:#e67e22;
+}
+.schedule-now-line::before{
+  content:'▲';font-size:9px;
+}
+.schedule-now-hr{flex:1;height:1px;background:#f5c88a;border:none;margin:0;}
+
+/* 总进度底栏 */
+.schedule-footer{
+  background:#fff;border-radius:14px;padding:12px 16px;
+  margin-top:10px;
+}
+.schedule-footer-top{
+  display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;
+}
+.schedule-footer-label{font-size:14px;font-weight:700;color:var(--ink);}
+.schedule-footer-pct{font-size:18px;font-weight:900;color:#2d8c52;}
+.schedule-footer-sub{font-size:12px;color:var(--muted);margin-bottom:6px;}
+.schedule-footer-bar{height:8px;background:#e8f3e0;border-radius:99px;overflow:hidden;}
+.schedule-footer-fill{height:100%;background:linear-gradient(90deg,#2d8c52,#48c274);border-radius:99px;transition:width .4s;}
+
+.schedule-empty{padding:24px 20px;text-align:center;color:#bbb;font-size:14px;line-height:2;}
 
 /* 编辑流程 Sheet */
 .sched-row{
-  display:flex;align-items:center;gap:8px;
-  padding:8px 0;border-bottom:1px solid #f0ede6;
+  display:grid;grid-template-columns:auto 80px 1fr 1fr auto;
+  align-items:center;gap:8px;
+  padding:10px 0;border-bottom:1px solid #f0ede6;
 }
 .sched-row:last-of-type{border-bottom:none;}
-.sched-drag{color:#ccc;cursor:grab;font-size:18px;flex-shrink:0;padding:0 2px;}
-.sched-time-input{width:72px;padding:6px 8px;border:1.5px solid rgba(0,0,0,.1);border-radius:8px;font-size:13px;font-family:inherit;outline:none;text-align:center;}
-.sched-time-input:focus{border-color:var(--sage);}
-.sched-title-input{flex:1;padding:6px 10px;border:1.5px solid rgba(0,0,0,.1);border-radius:8px;font-size:13px;font-family:inherit;outline:none;}
-.sched-title-input:focus{border-color:var(--sage);}
-.sched-note-input{flex:1;padding:6px 10px;border:1.5px solid rgba(0,0,0,.1);border-radius:8px;font-size:12px;font-family:inherit;outline:none;color:var(--muted);}
-.sched-note-input:focus{border-color:var(--sage);}
-.sched-del-btn{width:28px;height:28px;border-radius:50%;border:1.5px solid #fcc;background:#fff5f5;color:#e74c3c;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1;}
+.sched-drag{color:#d0ccc4;cursor:grab;font-size:20px;flex-shrink:0;padding:0 2px;touch-action:none;}
+.sched-drag:active{cursor:grabbing;}
+.sched-time-input{width:80px;padding:8px 8px;border:1.5px solid rgba(0,0,0,.1);border-radius:10px;font-size:13px;font-family:inherit;outline:none;text-align:center;background:#fafaf8;}
+.sched-time-input:focus{border-color:var(--sage);background:#fff;}
+.sched-title-input{flex:1;padding:8px 10px;border:1.5px solid rgba(0,0,0,.1);border-radius:10px;font-size:14px;font-family:inherit;outline:none;background:#fafaf8;}
+.sched-title-input:focus{border-color:var(--sage);background:#fff;}
+.sched-note-input{flex:1;padding:8px 10px;border:1.5px solid rgba(0,0,0,.1);border-radius:10px;font-size:13px;font-family:inherit;outline:none;color:var(--muted);background:#fafaf8;}
+.sched-note-input:focus{border-color:var(--sage);background:#fff;}
+.sched-del-btn{width:30px;height:30px;border-radius:50%;border:none;background:#fff0f0;color:#e74c3c;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1;transition:background .15s;}
+.sched-del-btn:active{background:#fdd;}
 
 /* ══ 二维码签到 ══ */
 .qr-sheet-inner{background:#fff;border-radius:24px 24px 0 0;padding:20px 16px 32px;width:100%;max-width:520px;max-height:92vh;overflow-y:auto;}
@@ -3256,7 +3368,76 @@ function getWeeklyInfo(){
   if(!selectedWorshipDate||!worshipData[selectedWorshipDate])selectedWorshipDate=nearestWorshipDate();
   return worshipData[selectedWorshipDate]||{sermon:'待填写',host:'待填写',prayer:'待填写',songs:['待填写'],notices:['暂无通告'],roles:[]};
 }
-/* 今日金句：优先从 bible.txt 数据中随机抽取，数据未就绪时使用内置备用金句 */
+/* ══ 今日金句系统 ══
+   优先级：① 当日 localStorage 缓存 → ② bible.helloao.org API（CUV中文） → ③ 本地精选库
+   同一天始终显示同一节，API 结果缓存至次日自动更新
+*/
+
+// 精选 60 条经文（书卷/章/节 → 用于 API 查询 + 显示书名）
+const VERSE_SCHEDULE=[
+  {book:'john',ch:3,v:16,name:'约翰福音'},
+  {book:'psalms',ch:23,v:1,name:'诗篇'},
+  {book:'isaiah',ch:41,v:10,name:'以赛亚书'},
+  {book:'philippians',ch:4,v:13,name:'腓立比书'},
+  {book:'matthew',ch:11,v:28,name:'马太福音'},
+  {book:'proverbs',ch:3,v:5,name:'箴言'},
+  {book:'psalms',ch:119,v:105,name:'诗篇'},
+  {book:'1john',ch:4,v:16,name:'约翰一书'},
+  {book:'romans',ch:8,v:28,name:'罗马书'},
+  {book:'joshua',ch:1,v:9,name:'约书亚记'},
+  {book:'jeremiah',ch:29,v:11,name:'耶利米书'},
+  {book:'psalms',ch:46,v:1,name:'诗篇'},
+  {book:'matthew',ch:6,v:33,name:'马太福音'},
+  {book:'isaiah',ch:40,v:31,name:'以赛亚书'},
+  {book:'romans',ch:12,v:2,name:'罗马书'},
+  {book:'galatians',ch:2,v:20,name:'加拉太书'},
+  {book:'ephesians',ch:2,v:8,name:'以弗所书'},
+  {book:'psalms',ch:37,v:4,name:'诗篇'},
+  {book:'john',ch:14,v:6,name:'约翰福音'},
+  {book:'proverbs',ch:3,v:6,name:'箴言'},
+  {book:'isaiah',ch:26,v:3,name:'以赛亚书'},
+  {book:'psalms',ch:27,v:1,name:'诗篇'},
+  {book:'john',ch:10,v:10,name:'约翰福音'},
+  {book:'romans',ch:5,v:8,name:'罗马书'},
+  {book:'1corinthians',ch:13,v:4,name:'哥林多前书'},
+  {book:'hebrews',ch:11,v:1,name:'希伯来书'},
+  {book:'john',ch:8,v:32,name:'约翰福音'},
+  {book:'psalms',ch:34,v:8,name:'诗篇'},
+  {book:'matthew',ch:5,v:4,name:'马太福音'},
+  {book:'ephesians',ch:6,v:10,name:'以弗所书'},
+  {book:'psalms',ch:91,v:1,name:'诗篇'},
+  {book:'john',ch:15,v:5,name:'约翰福音'},
+  {book:'romans',ch:8,v:1,name:'罗马书'},
+  {book:'philippians',ch:4,v:6,name:'腓立比书'},
+  {book:'isaiah',ch:43,v:2,name:'以赛亚书'},
+  {book:'psalms',ch:103,v:1,name:'诗篇'},
+  {book:'matthew',ch:28,v:20,name:'马太福音'},
+  {book:'john',ch:16,v:33,name:'约翰福音'},
+  {book:'proverbs',ch:16,v:3,name:'箴言'},
+  {book:'romans',ch:15,v:13,name:'罗马书'},
+  {book:'psalms',ch:145,v:18,name:'诗篇'},
+  {book:'colossians',ch:3,v:2,name:'歌罗西书'},
+  {book:'john',ch:11,v:25,name:'约翰福音'},
+  {book:'hebrews',ch:4,v:16,name:'希伯来书'},
+  {book:'psalms',ch:55,v:22,name:'诗篇'},
+  {book:'matthew',ch:5,v:8,name:'马太福音'},
+  {book:'isaiah',ch:53,v:5,name:'以赛亚书'},
+  {book:'1thessalonians',ch:5,v:16,name:'帖撒罗尼迦前书'},
+  {book:'james',ch:1,v:5,name:'雅各书'},
+  {book:'psalms',ch:16,v:11,name:'诗篇'},
+  {book:'john',ch:14,v:27,name:'约翰福音'},
+  {book:'romans',ch:1,v:16,name:'罗马书'},
+  {book:'proverbs',ch:4,v:23,name:'箴言'},
+  {book:'ephesians',ch:3,v:20,name:'以弗所书'},
+  {book:'psalms',ch:1,v:1,name:'诗篇'},
+  {book:'matthew',ch:7,v:7,name:'马太福音'},
+  {book:'john',ch:4,v:24,name:'约翰福音'},
+  {book:'1john',ch:1,v:9,name:'约翰一书'},
+  {book:'hebrews',ch:13,v:8,name:'希伯来书'},
+  {book:'psalms',ch:139,v:14,name:'诗篇'},
+];
+
+// 内置备用（API 和本地 bible.txt 均不可用时）
 const DAILY_VERSES_FALLBACK=[
   {text:'你不要害怕，因为我与你同在；不要惊惶，因为我是你的神。',ref:'以赛亚书 41:10'},
   {text:'凡劳苦担重担的人可以到我这里来，我就使你们得安息。',ref:'马太福音 11:28'},
@@ -3265,47 +3446,308 @@ const DAILY_VERSES_FALLBACK=[
   {text:'我靠着那加给我力量的，凡事都能做。',ref:'腓立比书 4:13'},
   {text:'神爱世人，甚至将他的独生子赐给他们。',ref:'约翰福音 3:16'},
   {text:'你的话是我脚前的灯，是我路上的光。',ref:'诗篇 119:105'},
-  {text:'神就是爱；住在爱里面的，就是住在神里面。',ref:'约翰一书 4:16'}
+  {text:'神就是爱；住在爱里面的，就是住在神里面。',ref:'约翰一书 4:16'},
+  {text:'你们要寻求我，若专心寻求我，就必寻见。',ref:'耶利米书 29:13'},
+  {text:'你要以耶和华为乐，他就将你心里所求的赐给你。',ref:'诗篇 37:4'},
 ];
-function getTodayVerse(){
-  /* 用日期作为固定种子，确保同一天显示同一节经文 */
-  const now=new Date();
-  const seed=now.getFullYear()*10000+(now.getMonth()+1)*100+now.getDate();
-  function seededRandom(s){let x=Math.sin(s+1)*10000;return x-Math.floor(x);}
 
-  /* 若 bible.txt 已加载完毕，从中随机抽取一节 */
-  if(window.LOCAL_BIBLE && Object.keys(window.LOCAL_BIBLE).length>0){
-    const books=BIBLE_BOOKS.filter(b=>window.LOCAL_BIBLE[b.abbr]);
-    if(books.length>0){
-      const bookIdx=Math.floor(seededRandom(seed)*books.length);
-      const book=books[bookIdx];
-      const chapters=Object.keys(window.LOCAL_BIBLE[book.abbr]).map(Number);
-      const chIdx=Math.floor(seededRandom(seed+1)*chapters.length);
-      const ch=chapters[chIdx];
-      const verses=window.LOCAL_BIBLE[book.abbr][ch]||[];
-      if(verses.length>0){
-        const vIdx=Math.floor(seededRandom(seed+2)*verses.length);
-        const v=verses[vIdx];
-        return {text:v.text, ref:`${book.name} ${ch}:${v.verse}`};
+function _todayDateKey(){
+  const n=new Date();
+  return `${n.getFullYear()}${n.getMonth()+1}${n.getDate()}`;
+}
+
+function _seededVerseEntry(){
+  const n=new Date();
+  const seed=n.getFullYear()*10000+(n.getMonth()+1)*100+n.getDate();
+  const idx=Math.abs(seed)%VERSE_SCHEDULE.length;
+  return VERSE_SCHEDULE[idx];
+}
+
+function getTodayVerse(){
+  // 优先读当日缓存
+  const cacheKey='churchDailyVerse_'+_todayDateKey();
+  try{
+    const cached=JSON.parse(localStorage.getItem(cacheKey)||'null');
+    if(cached&&cached.text&&cached.ref)return cached;
+  }catch(_){}
+  // 缓存未命中：返回内置备用，同时异步拉取 API
+  const n=new Date();
+  const seed=n.getFullYear()*10000+(n.getMonth()+1)*100+n.getDate();
+  const fbIdx=Math.abs(seed)%DAILY_VERSES_FALLBACK.length;
+  _fetchAndCacheTodayVerse();  // 异步，不阻塞渲染
+  return DAILY_VERSES_FALLBACK[fbIdx];
+}
+
+async function _fetchAndCacheTodayVerse(){
+  const cacheKey='churchDailyVerse_'+_todayDateKey();
+  // 已有缓存则跳过
+  try{
+    const cached=JSON.parse(localStorage.getItem(cacheKey)||'null');
+    if(cached&&cached.text)return;
+  }catch(_){}
+
+  const entry=_seededVerseEntry();
+  // 中文和合本 API：bible.helloao.org，支持 CORS，无需 Key
+  const url=`https://bible.helloao.org/api/CNV/${entry.book}/${entry.ch}.json`;
+  try{
+    const res=await fetch(url,{signal:AbortSignal.timeout?AbortSignal.timeout(6000):undefined});
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const data=await res.json();
+    // data.chapter.content 是节数组
+    const verses=data&&data.chapter&&data.chapter.content;
+    if(!verses)throw new Error('no content');
+    // 找目标节
+    let verseText='';
+    for(const item of verses){
+      if(item.type==='verse'&&Number(item.number)===entry.v){
+        verseText=(item.content||[]).map(c=>typeof c==='string'?c:(c.text||'')).join('').trim();
+        break;
+      }
+    }
+    if(!verseText)throw new Error('verse not found');
+    const result={text:verseText,ref:`${entry.name} ${entry.ch}:${entry.v}`};
+    localStorage.setItem(cacheKey,JSON.stringify(result));
+    // 静默刷新首页金句
+    const el=document.getElementById('weeklyPublicContent');
+    if(el&&el.querySelector('.verse-text')){
+      const vt=el.querySelector('.verse-text');
+      const vr=el.querySelector('.verse-ref');
+      if(vt)vt.textContent=result.text;
+      if(vr)vr.textContent='—— '+result.ref;
+      // 同步更新 dailyVerse 变量供分享使用
+      if(window._currentDailyVerse)window._currentDailyVerse=result;
+    }
+  }catch(e){
+    // API 失败：尝试从本地 bible.txt 获取
+    if(window.LOCAL_BIBLE&&Object.keys(window.LOCAL_BIBLE).length>0){
+      const books=BIBLE_BOOKS.filter(b=>window.LOCAL_BIBLE[b.abbr]);
+      if(books.length>0){
+        const n=new Date();
+        const seed=n.getFullYear()*10000+(n.getMonth()+1)*100+n.getDate();
+        function sr(s){let x=Math.sin(s+1)*10000;return x-Math.floor(x);}
+        const book=books[Math.floor(sr(seed)*books.length)];
+        const chapters=Object.keys(window.LOCAL_BIBLE[book.abbr]).map(Number);
+        const ch=chapters[Math.floor(sr(seed+1)*chapters.length)];
+        const vs=window.LOCAL_BIBLE[book.abbr][ch]||[];
+        if(vs.length>0){
+          const v=vs[Math.floor(sr(seed+2)*vs.length)];
+          const result={text:v.text,ref:`${book.name} ${ch}:${v.verse}`};
+          localStorage.setItem(cacheKey,JSON.stringify(result));
+          const el=document.getElementById('weeklyPublicContent');
+          if(el&&el.querySelector('.verse-text')){
+            el.querySelector('.verse-text').textContent=result.text;
+            el.querySelector('.verse-ref').textContent='—— '+result.ref;
+          }
+        }
       }
     }
   }
-  /* 数据尚未加载时使用内置备用金句 */
-  const idx=((seed%DAILY_VERSES_FALLBACK.length)+DAILY_VERSES_FALLBACK.length)%DAILY_VERSES_FALLBACK.length;
-  return DAILY_VERSES_FALLBACK[idx];
 }
-/* bible.txt 加载完成后若首页金句仍显示备用内容，则自动刷新 */
-(window.BIBLE_LOAD_PROMISE||Promise.resolve()).then(()=>{
-  if(typeof renderWeeklyPublic==='function'){
-    const el=document.getElementById('weeklyPublicContent');
-    if(el && el.querySelector('.verse-text'))renderWeeklyPublic();
+function bookmarkDailyVerse(){
+  const dailyVerse=window._currentDailyVerse||{};
+  if(!dailyVerse||!dailyVerse.text)return;
+  const bookmarks=JSON.parse(localStorage.getItem('churchVerseBookmarks')||'[]');
+  const entry={text:dailyVerse.text,ref:dailyVerse.ref,date:new Date().toLocaleDateString('zh-CN')};
+  const exists=bookmarks.some(b=>b.ref===entry.ref&&b.text===entry.text);
+  if(exists){showToast('已在收藏中');return;}
+  bookmarks.unshift(entry);
+  localStorage.setItem('churchVerseBookmarks',JSON.stringify(bookmarks.slice(0,50)));
+  showToast('收藏成功 ✦');
+}
+
+function shareDailyVerse(){
+  const dailyVerse=window._currentDailyVerse||{};
+  if(!dailyVerse||!dailyVerse.text)return;
+  showToast('生成分享图片中…');
+  _generateVerseShareImage(dailyVerse.ref, dailyVerse.text);
+}
+
+const VERSE_SHARE_PHOTOS=[
+  'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=900&q=80',
+  'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=900&q=80',
+  'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=900&q=80',
+  'https://images.unsplash.com/photo-1501854140801-50d01698950b?w=900&q=80',
+  'https://images.unsplash.com/photo-1518173946687-a4c8892bbd9f?w=900&q=80',
+  'https://images.unsplash.com/photo-1470770841072-f978cf4d019e?w=900&q=80',
+  'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=900&q=80',
+  'https://images.unsplash.com/photo-1511884642898-4c92249e20b6?w=900&q=80',
+];
+
+function _generateVerseShareImage(ref, text){
+  const W=900, PHOTO_H=520, TEXT_H=480, QR_AREA=170, TOTAL_H=PHOTO_H+TEXT_H;
+
+  // 先生成二维码 canvas（纯本地，无跨域问题）
+  _loadQRLib(()=>{
+    const qrWrap=document.createElement('div');
+    qrWrap.style.cssText='position:fixed;left:-9999px;top:0;width:120px;height:120px;background:#f5f4f2;';
+    document.body.appendChild(qrWrap);
+    new QRCode(qrWrap,{text:'https://duijiao.github.io/dianming/',width:120,height:120,
+      colorDark:'#333333',colorLight:'#f5f4f2',correctLevel:QRCode.CorrectLevel.M});
+
+    setTimeout(()=>{
+      const qrEl=qrWrap.querySelector('canvas')||qrWrap.querySelector('img');
+      const qrDataUrl=qrEl?(qrEl.tagName==='CANVAS'?qrEl.toDataURL():qrEl.src):null;
+      document.body.removeChild(qrWrap);
+
+      // 尝试加载网络图片，失败则用渐变
+      const photoUrl=VERSE_SHARE_PHOTOS[Math.floor(Math.random()*VERSE_SHARE_PHOTOS.length)];
+      const img=new Image();
+      img.crossOrigin='anonymous';
+
+      function drawAll(photoDrawFn){
+        const canvas=document.createElement('canvas');
+        canvas.width=W; canvas.height=TOTAL_H;
+        const ctx=canvas.getContext('2d');
+
+        // 顶部照片 / 渐变
+        photoDrawFn(ctx);
+
+        // 文字区底色
+        ctx.fillStyle='#f5f4f2';
+        ctx.fillRect(0,PHOTO_H,W,TEXT_H);
+
+        // 经文出处
+        ctx.fillStyle='#555';
+        ctx.font='bold 32px serif';
+        ctx.textAlign='left';
+        ctx.fillText(ref,72,PHOTO_H+76);
+
+        // 经文正文（自动换行）
+        ctx.fillStyle='#1a1a1a';
+        ctx.font='44px sans-serif';
+        const MAX_W=760,LINE_H=74,START_Y=PHOTO_H+154;
+        let line='',lines=[];
+        for(const ch of text){
+          const test=line+ch;
+          if(ctx.measureText(test).width>MAX_W){lines.push(line);line=ch;}
+          else line=test;
+        }
+        if(line)lines.push(line);
+        lines.forEach((l,i)=>ctx.fillText(l,72,START_Y+i*LINE_H));
+
+        // 虚线分割
+        const divY=PHOTO_H+TEXT_H-QR_AREA-10;
+        ctx.setLineDash([12,10]);ctx.strokeStyle='#ccc';ctx.lineWidth=1.5;
+        ctx.beginPath();ctx.moveTo(56,divY);ctx.lineTo(W-56,divY);ctx.stroke();
+        ctx.setLineDash([]);
+
+        // 二维码
+        const QR_X=56,QR_Y=divY+26,QR_S=108;
+        function afterQR(){
+          _drawShareFooter(ctx,QR_X+QR_S+22,QR_Y);
+          _presentVerseImage(canvas);
+        }
+        if(qrDataUrl){
+          const qi=new Image();
+          qi.onload=()=>{ctx.drawImage(qi,QR_X,QR_Y,QR_S,QR_S);afterQR();};
+          qi.onerror=afterQR;
+          qi.src=qrDataUrl;
+        } else {
+          afterQR();
+        }
+      }
+
+      img.onload=function(){
+        drawAll(ctx=>{
+          try{
+            const scale=Math.max(W/img.width,PHOTO_H/img.height);
+            const dw=img.width*scale,dh=img.height*scale;
+            ctx.drawImage(img,(W-dw)/2,(PHOTO_H-dh)/2,dw,dh);
+          }catch(e){ _drawGradientBg(ctx,W,PHOTO_H); }
+        });
+      };
+      img.onerror=function(){
+        drawAll(ctx=>_drawGradientBg(ctx,W,PHOTO_H));
+      };
+      img.src=photoUrl;
+    },400);
+  });
+}
+
+function _drawGradientBg(ctx,W,H){
+  const grad=ctx.createLinearGradient(0,0,W,H);
+  grad.addColorStop(0,'#1a3a5c');
+  grad.addColorStop(0.5,'#2d6a8c');
+  grad.addColorStop(1,'#3a8c6a');
+  ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
+  // 装饰光晕
+  const g2=ctx.createRadialGradient(W*0.7,H*0.3,0,W*0.7,H*0.3,W*0.5);
+  g2.addColorStop(0,'rgba(255,200,100,.18)');g2.addColorStop(1,'transparent');
+  ctx.fillStyle=g2;ctx.fillRect(0,0,W,H);
+}
+
+function _drawShareFooter(ctx,x,y){
+  ctx.fillStyle='#555';
+  ctx.font='bold 26px sans-serif';
+  ctx.textAlign='left';
+  ctx.fillText('扫描二维码',x,y+36);
+  ctx.fillStyle='#999';
+  ctx.font='22px sans-serif';
+  ctx.fillText('前往巴西华人基督教会网站',x,y+72);
+}
+
+function _loadQRLib(cb){
+  if(window.QRCode){cb();return;}
+  const s=document.createElement('script');
+  s.src='https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+  s.onload=cb;document.head.appendChild(s);
+}
+
+function _presentVerseImage(canvas){
+  let dataUrl;
+  try{ dataUrl=canvas.toDataURL('image/png'); }
+  catch(e){
+    // canvas 被跨域污染，改用纯文字分享
+    showToast('图片生成受限，已复制经文文字');
+    const t=`「${(window._shareVerseText)||''}」`;
+    if(navigator.clipboard)navigator.clipboard.writeText(t).catch(()=>{});
+    return;
   }
-});
+
+  const overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;-webkit-overflow-scrolling:touch;';
+
+  // 保存按钮：优先 navigator.share（iOS），其次 download 链接（Android）
+  const canShare=navigator.share&&navigator.canShare;
+  const saveBtn=canShare
+    ?`<button id="_vsShareBtn" style="background:#fff;color:#222;border:none;border-radius:24px;padding:12px 36px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:14px;">↑ 分享 / 保存图片</button>`
+    :`<a id="_vsDownloadBtn" href="${dataUrl}" download="今日金句.png" style="background:#fff;color:#222;border-radius:24px;padding:12px 36px;font-size:15px;font-weight:700;text-decoration:none;font-family:inherit;margin-top:14px;display:inline-block;">↓ 保存图片</a>`;
+
+  overlay.innerHTML=`
+    <img src="${dataUrl}" style="max-width:100%;max-height:72vh;border-radius:10px;box-shadow:0 8px 40px rgba(0,0,0,.5);display:block;" />
+    <p style="color:rgba(255,255,255,.55);font-size:12px;margin:10px 0 0;text-align:center;">长按图片可保存到相册</p>
+    ${saveBtn}
+    <button onclick="this.closest('div').remove()" style="margin-top:10px;background:none;border:none;color:rgba(255,255,255,.4);font-size:13px;cursor:pointer;font-family:inherit;padding:6px 16px;">关闭</button>`;
+
+  overlay.onclick=e=>{if(e.target===overlay)overlay.remove();};
+  document.body.appendChild(overlay);
+
+  // 绑定 share 按钮
+  const shareBtn=overlay.querySelector('#_vsShareBtn');
+  if(shareBtn){
+    shareBtn.onclick=async()=>{
+      try{
+        const blob=await(await fetch(dataUrl)).blob();
+        const file=new File([blob],'今日金句.png',{type:'image/png'});
+        if(navigator.canShare&&navigator.canShare({files:[file]})){
+          await navigator.share({files:[file],title:'今日金句'});
+        } else {
+          await navigator.share({title:'今日金句',url:'https://duijiao.github.io/dianming/'});
+        }
+      }catch(err){
+        // 用户取消或不支持，降级为长按提示
+        showToast('请长按图片保存到相册');
+      }
+    };
+  }
+}
+
 function renderWeeklyPublic(){
   const el=document.getElementById('weeklyPublicContent');
   if(!el)return;
 
   const dailyVerse=getTodayVerse();
+  window._currentDailyVerse=dailyVerse;
   const mt=MEETING_TYPES.find(t=>t.dow===homeScheduleDOW)||MEETING_TYPES[0];
 
   // 当前显示的聚会日期和信息
@@ -3394,7 +3836,18 @@ function renderWeeklyPublic(){
   const verseCard=`
     <div class="verse-card">
       <div class="verse-card-head">
-        <div class="verse-card-head-left"><span class="verse-head-icon">✦</span><span class="verse-card-label">今日金句</span></div>
+        <div class="verse-card-head-left">
+          <span class="verse-head-icon">✦</span>
+          <span class="verse-card-label">今日金句</span>
+        </div>
+        <div class="verse-card-actions">
+          <button class="verse-action-btn" onclick="bookmarkDailyVerse()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>收藏
+          </button>
+          <button class="verse-action-btn" onclick="shareDailyVerse()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>分享
+          </button>
+        </div>
       </div>
       <div class="verse-quote-mark">"</div>
       <div class="verse-text">${dailyVerse.text}</div>
@@ -3512,9 +3965,10 @@ function renderWeeklyPublic(){
     <!-- 诗歌 -->
     ${songsSection}
     <!-- 聚会流程 -->
-    ${renderScheduleBlock(info,canManageWorship())}
+    <div id="schedule-block-container">${renderScheduleBlock(info,canManageWorship())}</div>
   `;
   setTimeout(initSwipeDots,50);
+  startScheduleTicker();
 }
 
 // ══ 周五/周六 聚会信息设置 Sheet ══
@@ -4092,7 +4546,10 @@ function renderWorshipPage(){
         </div>
         <svg class="worship-songs-btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
       </button>`}
-    </div>`:`<div style="padding:32px 0;text-align:center;color:#bbb;font-size:14px;">本周暂无敬拜排班</div>`}`;
+    </div>`:`<div style="padding:32px 0;text-align:center;color:#bbb;font-size:14px;">本周暂无敬拜排班</div>`}
+    <!-- 聚会流程 -->
+    <div id="schedule-block-container">${renderScheduleBlock(info,canManageWorship())}</div>`;
+  startScheduleTicker();
 }
 // ══ 聚会流程时间轴 ════════════════════════════════
 // 各聚会日程默认模板（按星期几：0=日，5=五，6=六）
@@ -4160,6 +4617,108 @@ function getNowTimeStr(){
   return `${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`;
 }
 
+// ── 实时流程计时器 ─────────────────────────────────────
+let _schedTickerInterval=null;
+let _schedLastActiveIdx=-2; // track active item changes
+
+function startScheduleTicker(){
+  // Clear any existing timer
+  if(_schedTickerInterval)clearInterval(_schedTickerInterval);
+  _schedLastActiveIdx=-2;
+  // Tick every 10 seconds
+  _schedTickerInterval=setInterval(_schedTick,10000);
+  // Also tick immediately
+  _schedTick();
+}
+
+function stopScheduleTicker(){
+  if(_schedTickerInterval){clearInterval(_schedTickerInterval);_schedTickerInterval=null;}
+}
+
+function _schedTick(){
+  const container=document.getElementById('schedule-block-container');
+  if(!container||!container.closest('.page.active')){
+    // Page is not visible — keep timer alive but skip DOM work
+    return;
+  }
+
+  // Determine active item index using current time
+  let schedDOW,sched,matchDate;
+  if(selectedWorshipDate&&homeScheduleDOW===0){
+    schedDOW=new Date(selectedWorshipDate+'T00:00:00').getDay();
+    matchDate=selectedWorshipDate;
+    sched=getScheduleForDate(selectedWorshipDate);
+  }else{
+    schedDOW=homeScheduleDOW;
+    matchDate=homeScheduleDOW===0
+      ?(selectedWorshipDate||getNearestDateForDOW(0))
+      :getNearestDateForDOW(schedDOW);
+    sched=matchDate?getScheduleForDate(matchDate):null;
+  }
+
+  if(!sched||!sched.length)return;
+
+  const isToday=matchDate===new Date().toISOString().slice(0,10)
+    ||(schedDOW===new Date().getDay()&&!selectedWorshipDate);
+  if(!isToday)return; // nothing to tick for non-today schedules
+
+  const now=getNowTimeStr();
+  function timeToMin(t){const[h,m]=t.split(':').map(Number);return h*60+m;}
+  const nowMin=timeToMin(now);
+
+  let activeIdx=-1;
+  for(let i=sched.length-1;i>=0;i--){
+    if(now>=sched[i].time){activeIdx=i;break;}
+  }
+
+  // If the active item changed, do a full re-render of the block
+  if(activeIdx!==_schedLastActiveIdx){
+    _schedLastActiveIdx=activeIdx;
+    const info=getWeeklyInfo();
+    container.innerHTML=renderScheduleBlock(info,canManageWorship());
+    return;
+  }
+
+  // Otherwise just update the live sub-elements in place (smooth, no flicker)
+  if(activeIdx<0)return;
+
+  function itemDurMin(i){
+    if(i<sched.length-1)return timeToMin(sched[i+1].time)-timeToMin(sched[i].time);
+    return 30;
+  }
+
+  const startMin=timeToMin(sched[activeIdx].time);
+  const durMin=itemDurMin(activeIdx);
+  const elapsedMin=Math.max(0,nowMin-startMin);
+  const activePct=Math.min(100,Math.round(elapsedMin/durMin*100));
+
+  // Total progress
+  const firstMin=timeToMin(sched[0].time);
+  const totalMin=sched.reduce((s,_,i)=>s+itemDurMin(i),0);
+  const overallPct=Math.min(100,Math.round(((nowMin-firstMin)/totalMin)*100));
+  const completedCount=activeIdx;
+
+  // Update active banner elapsed + pct
+  const elapsedEl=container.querySelector('.schedule-active-elapsed');
+  if(elapsedEl)elapsedEl.textContent='已进行 '+elapsedMin+'分钟';
+
+  const fillEl=container.querySelector('.schedule-progress-fill');
+  if(fillEl)fillEl.style.width=activePct+'%';
+
+  const pctEl=container.querySelector('.schedule-progress-pct');
+  if(pctEl)pctEl.textContent=activePct+'%';
+
+  // Update footer
+  const footerFill=container.querySelector('.schedule-footer-fill');
+  if(footerFill)footerFill.style.width=overallPct+'%';
+
+  const footerPct=container.querySelector('.schedule-footer-pct');
+  if(footerPct)footerPct.textContent=overallPct+'%';
+
+  const footerSub=container.querySelector('.schedule-footer-sub');
+  if(footerSub)footerSub.textContent='已完成 '+completedCount+' / '+sched.length+' 项';
+}
+
 // Meeting type definitions
 // ══ 多时间聚会系统 ══
 const MEETING_TYPES=[
@@ -4203,38 +4762,158 @@ function getHomeMtDate(){
 function renderScheduleBlock(info,showEdit){
   if(showEdit===undefined)showEdit=canManageWorship();
 
-  // schedDOW: from worship page use date's dow; from home page always follow homeScheduleDOW
-  let schedDOW, sched;
+  let schedDOW, sched, matchDate;
   if(selectedWorshipDate && homeScheduleDOW===0){
-    // 敬拜页 / 主日：用选中的具体日期
     schedDOW=new Date(selectedWorshipDate+'T00:00:00').getDay();
+    matchDate=selectedWorshipDate;
     sched=getScheduleForDate(selectedWorshipDate);
   } else {
-    // 首页切换聚会类型时，跟随 homeScheduleDOW
     schedDOW=homeScheduleDOW;
-    const matchDate=homeScheduleDOW===0
+    matchDate=homeScheduleDOW===0
       ?(selectedWorshipDate||getNearestDateForDOW(0))
       :getNearestDateForDOW(schedDOW);
     sched=matchDate?getScheduleForDate(matchDate):null;
   }
 
   const mt=MEETING_TYPES.find(t=>t.dow===schedDOW)||MEETING_TYPES[0];
-
   const canEdit=showEdit;
   const now=getNowTimeStr();
+
+  // Determine which items are done / running / upcoming
   let activeIdx=-1;
-  if(sched){
-    const isToday=(selectedWorshipDate===new Date().toISOString().slice(0,10))
-      ||(schedDOW===new Date().getDay()&&!selectedWorshipDate);
-    if(isToday){
-      for(let i=sched.length-1;i>=0;i--){
-        if(now>=sched[i].time){activeIdx=i;break;}
-      }
+  const isToday=matchDate===new Date().toISOString().slice(0,10)
+    ||(schedDOW===new Date().getDay()&&!selectedWorshipDate);
+
+  if(sched&&isToday){
+    for(let i=sched.length-1;i>=0;i--){
+      if(now>=sched[i].time){activeIdx=i;break;}
     }
   }
 
-  // Dot color follows meeting type
-  const dotActiveStyle=`background:${mt.color};border-color:${mt.color};`;
+  if(!sched||!sched.length){
+    return `<div class="schedule-card">
+      <div class="schedule-card-head">
+        <div class="schedule-card-head-left">
+          <div class="schedule-head-icon" style="background:${mt.gradient};">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <span class="schedule-card-title">聚会流程 · ${mt.label}</span>
+        </div>
+        ${canEdit?`<button class="schedule-edit-btn" onclick="openScheduleEditor(${schedDOW})">编辑流程</button>`:''}
+      </div>
+      <div class="schedule-empty">${canEdit?`暂无流程 · <span style="color:${mt.color};cursor:pointer;" onclick="openScheduleEditor(${schedDOW})">点击添加</span>`:'暂无聚会流程'}</div>
+    </div>`;
+  }
+
+  // ── Compute times & progress ──────────────────────
+  function timeToMin(t){const[h,m]=t.split(':').map(Number);return h*60+m;}
+  const nowMin=timeToMin(now);
+  const firstMin=timeToMin(sched[0].time);
+  const lastItem=sched[sched.length-1];
+  // Estimate duration of each item (gap to next item, last item = 30min default)
+  function itemDurMin(i){
+    if(i<sched.length-1)return timeToMin(sched[i+1].time)-timeToMin(sched[i].time);
+    return 30;
+  }
+  const totalMin=sched.reduce((s,_,i)=>s+itemDurMin(i),0);
+
+  // Active item progress %
+  let activePct=0, activeElapsed='', activeRange='', activeTitle='';
+  if(activeIdx>=0){
+    const startMin=timeToMin(sched[activeIdx].time);
+    const durMin=itemDurMin(activeIdx);
+    activeElapsed=Math.max(0,nowMin-startMin)+'分钟';
+    activePct=Math.min(100,Math.round((nowMin-startMin)/durMin*100));
+    const endMin=startMin+durMin;
+    const endH=String(Math.floor(endMin/60)).padStart(2,'0');
+    const endM=String(endMin%60).padStart(2,'0');
+    activeRange=sched[activeIdx].time+' - '+endH+':'+endM;
+    activeTitle=sched[activeIdx].title;
+  }
+
+  // Overall progress
+  const doneCount=activeIdx>=0?activeIdx:0;
+  const overallPct=isToday&&activeIdx>=0
+    ?Math.min(100,Math.round(((nowMin-firstMin)/totalMin)*100))
+    :(activeIdx<0&&isToday&&nowMin>timeToMin(lastItem.time)?100:0);
+
+  // Date display
+  const dateDisp=matchDate
+    ?new Date(matchDate+'T00:00:00').toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric',weekday:'short'})
+    :'';
+
+  // ── Active banner ─────────────────────────────────
+  const activeBanner=activeIdx>=0?`
+  <div class="schedule-active-banner">
+    <div class="schedule-active-top">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="schedule-active-badge">进行中</span>
+        <span class="schedule-active-time-range">${activeRange}</span>
+      </div>
+      <span class="schedule-active-elapsed">已进行 ${activeElapsed}</span>
+    </div>
+    <div class="schedule-active-title">${escapeHtml(activeTitle)}</div>
+    <div class="schedule-progress-row">
+      <div class="schedule-progress-bar"><div class="schedule-progress-fill" style="width:${activePct}%"></div></div>
+      <span class="schedule-progress-pct">${activePct}%</span>
+    </div>
+  </div>`:'';
+
+  // ── Timeline items ────────────────────────────────
+  let nowLineInserted=false;
+  const items=sched.map((item,i)=>{
+    const isDone=i<activeIdx;
+    const isRunning=i===activeIdx;
+    const isUpcoming=i>activeIdx;
+    const dotClass=isDone?'done':isRunning?'running':'upcoming';
+    const checkSVG=isDone
+      ?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>'
+      :(isRunning?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>'
+      :'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>');
+    const dur=itemDurMin(i);
+    const durLabel=dur>=60?Math.round(dur/6)/10+'小时':dur+'分钟';
+    const badge=isDone
+      ?`<span class="schedule-status-badge badge-done">已完成</span>`
+      :(isRunning?`<span class="schedule-status-badge badge-running">进行中</span>`
+      :`<span class="schedule-status-badge badge-upcoming">未开始</span>`);
+
+    // "当前时间" line: insert before the next upcoming item
+    let nowLine='';
+    if(isToday&&isUpcoming&&!nowLineInserted&&activeIdx>=0&&i===activeIdx+1){
+      nowLineInserted=true;
+      nowLine=`<div class="schedule-now-line"><hr class="schedule-now-hr"> 当前时间 ${now} </div>`;
+    }
+
+    return nowLine+`<div class="schedule-item">
+      <div class="schedule-dot-col">
+        <div class="schedule-dot ${dotClass}">${checkSVG}</div>
+      </div>
+      <div class="schedule-item-body${isRunning?' running':''}">
+        <div class="schedule-item-left">
+          <div class="schedule-item-time${isUpcoming?' upcoming':''}">${item.time}</div>
+          <div class="schedule-item-name${isUpcoming?' upcoming':''}">${escapeHtml(item.title)}</div>
+          <div class="schedule-item-dur">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            ${durLabel}
+          </div>
+        </div>
+        ${badge}
+      </div>
+    </div>`;
+  }).join('');
+
+  // ── Footer total progress ─────────────────────────
+  const completedCount=activeIdx>=0?activeIdx:0;
+  const footerPct=isToday?overallPct:0;
+  const footer=`
+  <div class="schedule-footer">
+    <div class="schedule-footer-top">
+      <span class="schedule-footer-label">聚会进度</span>
+      <span class="schedule-footer-pct">${footerPct}%</span>
+    </div>
+    <div class="schedule-footer-sub">已完成 ${completedCount} / ${sched.length} 项</div>
+    <div class="schedule-footer-bar"><div class="schedule-footer-fill" style="width:${footerPct}%"></div></div>
+  </div>`;
 
   return `<div class="schedule-card">
     <div class="schedule-card-head">
@@ -4246,31 +4925,14 @@ function renderScheduleBlock(info,showEdit){
       </div>
       ${canEdit?`<button class="schedule-edit-btn" onclick="openScheduleEditor(${schedDOW})">编辑流程</button>`:''}
     </div>
-    ${sched&&sched.length?`
-    <div class="schedule-timeline">
-      ${sched.map((item,i)=>{
-        const isActive=i===activeIdx;
-        const icon=SCHEDULE_ICONS[item.title]||DEFAULT_ICON;
-        return `<div class="schedule-item">
-          <div class="schedule-dot-wrap">
-            <div class="schedule-dot${isActive?' active':''}" ${isActive?`style="${dotActiveStyle}"`:''}>
-              ${icon}
-            </div>
-          </div>
-          <div class="schedule-info">
-            <div class="schedule-time">${item.time}</div>
-            <div class="schedule-title-text"${isActive?` style="color:${mt.color};"`:''}>
-              ${escapeHtml(item.title)}
-              ${isActive?`<span style="font-size:11px;background:${mt.color}22;color:${mt.color};border-radius:6px;padding:1px 6px;font-weight:600;margin-left:4px;">进行中</span>`:''}
-            </div>
-            ${item.note?`<div class="schedule-note">${escapeHtml(item.note)}</div>`:''}
-          </div>
-        </div>`;
-      }).join('')}
-    </div>`:`
-    <div class="schedule-empty">
-      ${canEdit?`暂无流程 · <span style="color:${mt.color};cursor:pointer;" onclick="openScheduleEditor(${schedDOW})">点击添加</span>`:'暂无聚会流程'}
-    </div>`}
+    ${dateDisp?`<div class="schedule-meta-row">
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${dateDisp}</span>
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${sched[0].time} - ${(()=>{const lm=timeToMin(lastItem.time)+itemDurMin(sched.length-1);return String(Math.floor(lm/60)).padStart(2,'0')+':'+String(lm%60).padStart(2,'0');})()}</span>
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>共${sched.length}项流程</span>
+    </div>`:''}
+    ${activeBanner}
+    <div class="schedule-timeline">${items}</div>
+    ${isToday?footer:''}
   </div>`;
 }
 
@@ -4336,24 +4998,48 @@ function openScheduleEditor(editDOWParam){
     div.addEventListener('dragover',e=>{e.preventDefault();const r=div.getBoundingClientRect();const mid=r.top+r.height/2;div.parentNode.insertBefore(window._dragSchedRow,e.clientY<mid?div:div.nextSibling);});
     container.appendChild(div);
   }
-  const tipHtml=editByDOW?`<div style="background:var(--gold-light);border-radius:10px;padding:8px 12px;font-size:12px;color:var(--sage);margin-bottom:12px;">💡 保存后将作为「${MEETING_TYPES.find(t=>t.dow===editDOW)?.label||''}」的默认流程</div>`:'';
+  const mtLabel=MEETING_TYPES.find(t=>t.dow===editDOW)?.label||'';
+  const mtColor=MEETING_TYPES.find(t=>t.dow===editDOW)?.color||'var(--sage)';
+  const mtGradient=MEETING_TYPES.find(t=>t.dow===editDOW)?.gradient||'linear-gradient(135deg,#2d8c52,#48c274)';
+  const tipHtml=editByDOW?`
+    <div style="background:linear-gradient(135deg,${mtGradient.replace('linear-gradient(135deg,','').replace(')','')}08,transparent 80%);border:1px solid ${mtColor}22;border-radius:14px;padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:8px;">
+      <div style="width:32px;height:32px;border-radius:9px;background:${mtGradient};display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,.15);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="width:16px;height:16px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <div>
+        <div style="font-size:13px;font-weight:700;color:var(--ink);">${mtLabel}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:1px;">保存后作为每周默认流程，同步至云端</div>
+      </div>
+    </div>`:'';
   const saveBtn=editByDOW
-    ?`<button class="btn btn-gold" style="flex:1;" onclick="saveScheduleEditor(${editDOW},null)">保存流程</button>`
-    :`<button class="btn btn-gold" style="flex:1;" onclick="saveScheduleEditor(null,'${selectedWorshipDate||''}')">保存流程</button>`;
+    ?`<button class="btn btn-gold" style="flex:1;justify-content:center;padding:12px;" onclick="saveScheduleEditor(${editDOW},null)">💾 保存流程</button>`
+    :`<button class="btn btn-gold" style="flex:1;justify-content:center;padding:12px;" onclick="saveScheduleEditor(null,'${selectedWorshipDate||''}')">💾 保存流程</button>`;
   const resetJS=`(function(){const c=document.getElementById('schedRowContainer');c.innerHTML='';${defaultForReset}.forEach(x=>window._schedAddRow(x,c));})()`;
-  sheet.innerHTML=`<div class="sheet-inner" style="max-height:88vh;overflow-y:auto;">
-    <div class="sheet-title">编辑聚会流程
+  sheet.innerHTML=`<div class="sheet-inner" style="max-height:92vh;overflow-y:auto;">
+    <div class="sheet-title" style="margin-bottom:6px;">编辑聚会流程
       <span class="sheet-close" onclick="document.getElementById('scheduleEditorSheet').remove()">✕</span>
     </div>
-    <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">${editorLabel} · 拖动 ☰ 可调整顺序</p>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:5px;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;flex-shrink:0;"><path d="M9 18H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/></svg>
+      ${editorLabel} · 长按 ☰ 拖动排序
+    </p>
     ${tipHtml}
+    <!-- 列标题 -->
+    <div style="display:grid;grid-template-columns:auto 80px 1fr 1fr auto;gap:8px;padding:0 0 6px;border-bottom:1px solid #f0ede6;margin-bottom:4px;">
+      <div style="width:24px;"></div>
+      <div style="font-size:11px;color:var(--muted);font-weight:600;text-align:center;">时间</div>
+      <div style="font-size:11px;color:var(--muted);font-weight:600;padding-left:10px;">环节名称</div>
+      <div style="font-size:11px;color:var(--muted);font-weight:600;padding-left:10px;">备注</div>
+      <div style="width:30px;"></div>
+    </div>
     <div id="schedRowContainer"></div>
     <button onclick="(function(){const c=document.getElementById('schedRowContainer');window._schedAddRow({time:'',title:'',note:''},c);})()"
-      style="width:100%;margin:8px 0 16px;padding:9px;border:1.5px dashed var(--stone);background:none;border-radius:10px;font-size:13px;color:var(--muted);cursor:pointer;font-family:inherit;">
-      + 添加环节
+      style="width:100%;margin:10px 0 18px;padding:11px;border:1.5px dashed var(--stone);background:none;border-radius:12px;font-size:13px;color:var(--muted);cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:15px;height:15px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      添加环节
     </button>
     <div style="display:flex;gap:8px;">
-      <button class="btn btn-outline btn-sm" onclick="${resetJS}" style="font-size:12px;">重置默认</button>
+      <button class="btn btn-outline" onclick="${resetJS}" style="padding:12px 14px;font-size:13px;">↺ 重置</button>
       ${saveBtn}
     </div>
   </div>`;
