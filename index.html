@@ -604,6 +604,148 @@ body.role-admin .user-dropdown-item.admin-only{display:flex!important;}
 .worship-role-name{font-size:15px;font-weight:600;color:var(--ink);flex:1;}
 .worship-role-persons{font-size:14px;color:#888;text-align:right;white-space:nowrap;max-width:55%;overflow:hidden;text-overflow:ellipsis;}
 
+/* Avatar chips for persons (worship display + editor) */
+.worship-role-row{flex-wrap:wrap;}
+.worship-avatar-chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;flex:1;min-width:0;}
+.worship-avatar-chip{display:inline-flex;align-items:center;gap:6px;background:var(--gold-light);border-radius:999px;padding:3px 10px 3px 3px;font-size:12.5px;color:var(--ink);font-weight:500;white-space:nowrap;}
+.worship-avatar-chip .av-circle{width:20px;height:20px;border-radius:50%;background:var(--sage);color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.worship-avatar-chip.on-leave{opacity:.6;text-decoration:line-through;}
+.worship-empty-persons{color:#ccc;font-size:13px;}
+
+/* Role editor: chips with quick remove */
+.role-editor-people-chips{display:flex;flex-wrap:wrap;gap:6px;}
+.role-editor-people-chips .worship-avatar-chip{background:var(--parchment);cursor:default;}
+.role-editor-people-chips .chip-remove{border:none;background:none;color:var(--muted);cursor:pointer;font-size:13px;line-height:1;padding:0;margin-left:2px;}
+.role-editor-people-chips .chip-remove:hover{color:#c0392b;}
+
+/* Worship search bar (find a name across the month) */
+.worship-search-wrap{position:relative;margin:10px 16px 0;}
+.worship-search-wrap svg.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:#aaa;}
+.worship-search-input{width:100%;box-sizing:border-box;padding:10px 34px 10px 34px;border-radius:12px;border:1px solid var(--stone);background:#fff;font-size:13px;font-family:inherit;color:var(--ink);}
+.worship-search-input:focus{outline:none;border-color:var(--sage);}
+.worship-search-clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:none;background:none;color:#bbb;cursor:pointer;display:none;padding:4px;}
+.worship-search-wrap.has-text .worship-search-clear{display:block;}
+.worship-search-results{margin:8px 16px 0;background:#fff;border:1px solid var(--stone);border-radius:12px;overflow:hidden;display:none;}
+.worship-search-results.show{display:block;}
+.worship-search-result-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1px solid var(--stone);font-size:13px;cursor:pointer;}
+.worship-search-result-row:last-child{border-bottom:none;}
+.worship-search-result-row:active{background:var(--gold-light);}
+.worship-search-result-date{font-weight:600;color:var(--ink);}
+.worship-search-result-roles{color:var(--muted);text-align:right;}
+.worship-search-empty{padding:16px;text-align:center;color:#bbb;font-size:13px;}
+
+/* Back-to-nearest-week floating button */
+.worship-fab{position:absolute;right:16px;bottom:86px;display:flex;align-items:center;gap:6px;background:var(--sage);color:#fff;border:none;border-radius:999px;padding:10px 16px;font-size:13px;font-weight:600;box-shadow:0 4px 14px rgba(0,0,0,.18);cursor:pointer;z-index:5;font-family:inherit;}
+.worship-fab svg{width:15px;height:15px;}
+
+/* ══ Worship shift rows (ported 1:1 from 敬拜排班表 app's role-row/shift-card) ══ */
+.wsr-list{display:flex;flex-direction:column;gap:10px;padding:2px 16px 4px;}
+.wsr-row{display:flex;gap:10px;align-items:flex-start;}
+.wsr-role-label{min-width:50px;padding-top:10px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.wsr-role-badge{display:flex;flex-direction:column;align-items:center;gap:3px;border-radius:10px;padding:6px 8px;width:100%;}
+.wsr-role-badge svg{width:16px;height:16px;}
+.wsr-role-text{font-size:10px;font-weight:600;line-height:1;}
+.wsr-shift-card{position:relative;flex:1;min-width:0;background:#f0f0ee;border-radius:16px;padding:12px 14px;border:1px solid transparent;}
+.wsr-shift-card.active-card{background:var(--sage);}
+.wsr-shift-card.editable{cursor:pointer;}
+.wsr-shift-card.editable:hover{box-shadow:0 0 0 2px var(--sage);}
+.wsr-shift-name{font-size:14px;font-weight:600;color:var(--ink);margin-bottom:6px;padding-right:20px;}
+.wsr-shift-card.active-card .wsr-shift-name{color:#fff;}
+.wsr-persons{display:flex;flex-direction:column;gap:4px;}
+.wsr-person{display:flex;align-items:center;gap:6px;}
+.wsr-avatar{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;}
+.wsr-person-name{font-size:12px;color:#888;}
+.wsr-shift-card.active-card .wsr-person-name{color:rgba(255,255,255,.85);}
+.wsr-more-btn{position:absolute;top:8px;right:10px;background:none;border:none;cursor:pointer;color:#ccc;font-size:14px;line-height:1;}
+.wsr-shift-card.active-card .wsr-more-btn{color:rgba(255,255,255,.6);}
+.wsr-empty-name{color:#bbb;font-size:12px;}
+
+/* ══ Header card: date/month picker + week nav (from 排班表 app) ══ */
+.worship-header-card{background:#fff;border-radius:0 0 20px 20px;padding:14px 16px 4px;box-shadow:0 4px 16px rgba(0,0,0,.06);position:relative;margin-bottom:4px;}
+.worship-header-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+.worship-header-date{cursor:pointer;text-align:left;}
+.worship-church-title{font-family:'Noto Serif SC',serif;font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.5px;margin-bottom:2px;}
+.worship-day-num{font-size:24px;font-weight:800;line-height:1.2;color:var(--ink);}
+.worship-header-date-hint{display:flex;align-items:center;justify-content:flex-start;gap:4px;font-size:12.5px;color:var(--sage);margin-top:2px;font-weight:600;}
+.worship-chevron-icon{width:13px;height:13px;}
+.worship-header-right{display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0;}
+.worship-header-actions-row{display:flex;align-items:center;gap:6px;}
+.worship-icon-btn{width:30px;height:30px;border-radius:10px;background:var(--gold-light);border:none;color:var(--sage);display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.worship-icon-btn svg{width:15px;height:15px;}
+.worship-icon-btn:active{background:var(--sage);color:#fff;}
+.worship-today-btn{background:var(--sage);color:#fff;border:none;border-radius:999px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;}
+.worship-header-collapsible{overflow:hidden;max-height:74px;transition:max-height .25s ease,opacity .2s ease,margin .2s ease;}
+.worship-header-card.collapsed .worship-header-collapsible{max-height:0;opacity:0;margin:0;}
+.worship-week-nav-wrap{display:flex;align-items:center;gap:4px;margin-top:10px;}
+.worship-nav-arrow{background:none;border:none;color:var(--sage);width:22px;height:22px;flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.worship-nav-arrow svg{width:16px;height:16px;}
+.worship-week-nav{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;flex:1;padding-bottom:10px;justify-content:center;}
+.worship-week-nav::-webkit-scrollbar{display:none;}
+.worship-sunday-pill{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 10px;border-radius:12px;background:var(--parchment);color:var(--muted);cursor:pointer;min-width:42px;border:1px solid transparent;}
+.worship-sunday-pill .s-dow{font-size:10px;opacity:.85;}
+.worship-sunday-pill .s-num{font-size:14px;font-weight:700;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--ink);}
+.worship-sunday-pill.has-data .s-num{background:var(--gold-light);color:var(--sage);}
+.worship-sunday-pill.active{background:var(--sage);color:#fff;}
+.worship-sunday-pill.active .s-num{background:rgba(255,255,255,.25);color:#fff;}
+.worship-sunday-pill.is-today .s-dow{color:#b9770e;font-weight:700;}
+.worship-collapse-tab{display:flex;align-items:center;justify-content:center;gap:4px;color:var(--muted);font-size:11px;padding:4px 0 6px;cursor:pointer;}
+.worship-collapse-tab svg{width:13px;height:13px;transition:transform .2s;}
+.worship-header-card.collapsed .worship-collapse-tab svg{transform:rotate(180deg);}
+
+/* Month picker modal */
+.worship-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:flex-end;justify-content:center;z-index:200;}
+.worship-modal-overlay.open{display:flex;}
+.worship-month-picker{background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:480px;padding:8px 20px 28px;box-sizing:border-box;}
+.worship-picker-handle{width:36px;height:4px;background:var(--stone);border-radius:2px;margin:6px auto 14px;}
+.worship-picker-title{font-family:'Noto Serif SC',serif;font-size:16px;font-weight:700;text-align:center;margin-bottom:12px;color:var(--ink);}
+.worship-picker-year-row{display:flex;align-items:center;justify-content:center;gap:24px;margin-bottom:14px;}
+.worship-picker-year-row button{background:var(--gold-light);border:none;width:30px;height:30px;border-radius:50%;color:var(--sage);cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.worship-picker-year-row button svg{width:15px;height:15px;}
+.worship-picker-year-row span{font-size:16px;font-weight:700;color:var(--ink);min-width:64px;text-align:center;}
+.worship-picker-month-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.worship-picker-month-btn{padding:12px 0;border-radius:12px;border:1px solid var(--stone);background:#fff;color:var(--ink);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;}
+.worship-picker-month-btn.current{border-color:var(--sage);color:var(--sage);background:var(--gold-light);}
+.worship-picker-month-btn.has-data::after{content:'';display:block;width:5px;height:5px;border-radius:50%;background:var(--sage);margin:4px auto 0;}
+
+/* ══ Monthly batch editor (按月编辑排班) ══ */
+.wme-panel{background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:520px;max-height:88vh;box-sizing:border-box;display:flex;flex-direction:column;overflow:hidden;}
+.wme-head{padding:14px 18px 0;flex-shrink:0;}
+.wme-handle{width:36px;height:4px;background:var(--stone);border-radius:2px;margin:0 auto 12px;}
+.wme-nav{display:flex;align-items:center;gap:6px;}
+.wme-nav-btn{background:var(--gold-light);border:none;width:30px;height:30px;border-radius:50%;color:var(--sage);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
+.wme-nav-btn svg{width:15px;height:15px;}
+.wme-close-btn{background:var(--parchment);color:var(--muted);}
+.wme-title{font-family:'Noto Serif SC',serif;font-size:16px;font-weight:700;color:var(--ink);}
+.wme-sub{font-size:12px;color:var(--muted);text-align:center;margin:4px 0 12px;}
+.wme-body{flex:1;overflow-y:auto;padding:0 16px 20px;scrollbar-width:thin;}
+.wme-sunday-block{margin-bottom:12px;border-radius:16px;overflow:hidden;border:1.5px solid var(--stone);background:#fff;}
+.wme-sunday-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--parchment);cursor:pointer;user-select:none;transition:background .15s;}
+.wme-sunday-header.active-week{background:var(--gold-light);}
+.wme-sunday-date{font-size:14px;font-weight:700;color:var(--ink);}
+.wme-sunday-header.active-week .wme-sunday-date{color:var(--sage);}
+.wme-sunday-meta{font-size:12px;color:var(--muted);margin-top:2px;}
+.wme-chevron{width:16px;height:16px;color:var(--muted);transition:transform .2s;flex-shrink:0;}
+.wme-chevron.open{transform:rotate(180deg);}
+.wme-sunday-body{display:none;padding:10px 12px 12px;}
+.wme-sunday-body.open{display:block;}
+.wme-role-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;margin-bottom:6px;background:var(--parchment);transition:background .15s;}
+.wme-role-row.editable{cursor:pointer;}
+.wme-role-row.editable:active{background:var(--gold-light);}
+.wme-role-badge{display:flex;align-items:center;justify-content:center;border-radius:7px;padding:3px 9px;font-size:11px;font-weight:700;flex-shrink:0;min-width:42px;}
+.wme-role-persons{flex:1;font-size:13px;color:var(--ink);min-width:0;}
+.wme-role-persons.empty{color:#ccc;font-style:italic;}
+.wme-role-edit-hint{font-size:12px;color:var(--muted);flex-shrink:0;}
+.wme-add-row{margin-top:8px;padding-top:8px;border-top:1px solid var(--stone);}
+.wme-add-btn{width:100%;padding:9px;background:var(--gold-light);color:var(--sage);border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:5px;}
+.wme-add-btn svg{width:14px;height:14px;}
+.wme-empty{text-align:center;color:#bbb;font-size:14px;padding:3rem 0;}
+.wme-copy-bar{flex-shrink:0;padding:12px 16px;border-top:1px solid var(--stone);display:flex;gap:8px;background:#fff;}
+.wme-copy-btn{flex:1;padding:10px 8px;border:none;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;}
+.wme-copy-btn.secondary{background:var(--parchment);color:var(--muted);}
+.wme-copy-btn.secondary:active{background:var(--stone);}
+.wme-copy-btn.danger{background:#fdecea;color:var(--red);}
+.wme-copy-btn.danger:active{background:#fbdad6;}
+
 /* Songs button */
 .worship-songs-btn{
   display:flex;align-items:center;justify-content:space-between;
@@ -1627,37 +1769,141 @@ body.bible-fullscreen .bible-fab{
 
 <!-- ══ PAGE: 敬拜 ══ -->
 <div class="page" id="page-worship">
-  <div class="worship-page-wrap">
-    <!-- App Bar (Bible style) -->
-    <div class="worship-appbar">
-      <div class="worship-appbar-left">
-        <div class="worship-appbar-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
-            <!-- 音符1 -->
-            <path d="M9 18V5l12-2v13" stroke-linecap="round" stroke-linejoin="round"/>
-            <circle cx="6" cy="18" r="3" fill="currentColor" stroke="none"/>
-            <circle cx="18" cy="16" r="3" fill="currentColor" stroke="none"/>
-          </svg>
-        </div>
-        <span class="worship-appbar-title">敬拜排班</span>
+  <!-- App Bar — 与首页样式相同 -->
+  <div class="home-appbar">
+    <div class="home-appbar-logo">
+      <div class="home-appbar-badge">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M9 18V5l10-2v13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="6" cy="18" r="3" fill="white"/>
+          <circle cx="17" cy="16" r="3" fill="white"/>
+        </svg>
       </div>
-      <div class="worship-appbar-right">
-        <button class="worship-appbar-btn" onclick="downloadWorshipMonth()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          下载
-        </button>
-        <button class="worship-appbar-btn worship-manage-only" onclick="openSongLibrary()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-          诗歌库
-        </button>
-        <button class="worship-appbar-btn worship-manage-only" onclick="openWorshipEdit()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          编辑
-        </button>
+      <span class="home-appbar-name">敬拜排班</span>
+    </div>
+    <div class="appbar-user-pill" onclick="handleAuthClick()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;flex-shrink:0;">
+        <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+      </svg>
+      <span class="appbar-user-label" id="worshipAppbarUserLabel">游客模式</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px;flex-shrink:0;opacity:.6;">
+        <polyline points="6 9 12 15 18 9"/>
+      </svg>
+    </div>
+  </div>
+  <div class="worship-page-wrap">
+    <!-- Header card: date info + month picker + week nav -->
+    <div class="worship-header-card" id="worshipHeaderCard">
+      <div class="worship-header-top">
+        <div class="worship-header-date" onclick="openWorshipMonthPicker()" title="选择月份">
+          <div class="worship-church-title">本周排班</div>
+          <div class="worship-day-num" id="worshipHdrDay"></div>
+          <div class="worship-header-date-hint">
+            <span id="worshipHdrInfo"></span>
+            <svg class="worship-chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+        </div>
+        <div class="worship-header-right">
+          <div class="worship-header-actions-row">
+            <button class="worship-icon-btn" onclick="downloadWorshipMonth()" title="下载本月总单">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            </button>
+            <button class="worship-icon-btn worship-manage-only" onclick="openSongLibrary()" title="诗歌库">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+            </button>
+            <button class="worship-icon-btn worship-manage-only" onclick="openWorshipEdit()" title="编辑排班">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button class="worship-icon-btn worship-manage-only" onclick="openWorshipMonthlyEditor()" title="按月编辑排班">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M9 16l1.5 1.5L14.5 14"/></svg>
+            </button>
+          </div>
+          <button class="worship-today-btn" id="worshipTodayBtn" onclick="jumpToNearestWorshipDate()">回到本周</button>
+        </div>
+      </div>
+      <div class="worship-header-collapsible" id="worshipHeaderCollapsible">
+        <div class="worship-week-nav-wrap">
+          <button class="worship-nav-arrow" onclick="shiftWorshipMonth(-1)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <div class="worship-week-nav" id="worshipWeekNav"></div>
+          <button class="worship-nav-arrow" onclick="shiftWorshipMonth(1)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="worship-collapse-tab" onclick="toggleWorshipHeaderCollapse()">
+        <svg id="worshipCollapseIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
+        <span id="worshipCollapseLabel">收起</span>
       </div>
     </div>
-    <div class="worship-date-tabs" id="worshipDateTabs"></div>
+
+    <!-- Month picker modal -->
+    <div class="worship-modal-overlay" id="worshipMonthPickerOverlay" onclick="closeWorshipMonthPicker(event)">
+      <div class="worship-month-picker" onclick="event.stopPropagation()">
+        <div class="worship-picker-handle"></div>
+        <div class="worship-picker-title">选择月份</div>
+        <div class="worship-picker-year-row">
+          <button onclick="shiftWorshipPickerYear(-1)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <span id="worshipPickerYearLabel"></span>
+          <button onclick="shiftWorshipPickerYear(1)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+        <div class="worship-picker-month-grid" id="worshipPickerMonthGrid"></div>
+      </div>
+    </div>
+
+    <!-- Monthly batch editor modal -->
+    <div class="worship-modal-overlay" id="worshipMonthlyEditorOverlay" onclick="closeWorshipMonthlyEditor(event)">
+      <div class="wme-panel" onclick="event.stopPropagation()">
+        <div class="wme-head">
+          <div class="wme-handle"></div>
+          <div class="wme-nav">
+            <button class="wme-nav-btn" onclick="shiftWorshipMonthlyEditor(-1)" title="上个月">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <div style="flex:1;min-width:0;text-align:center;">
+              <div class="wme-title" id="wmeTitle"></div>
+            </div>
+            <button class="wme-nav-btn" onclick="shiftWorshipMonthlyEditor(1)" title="下个月">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+            <button class="wme-nav-btn wme-close-btn" onclick="closeWorshipMonthlyEditor()" title="关闭">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+          <div class="wme-sub" id="wmeSub"></div>
+        </div>
+        <div class="wme-body" id="wmeBody"></div>
+        <div class="wme-copy-bar" id="wmeCopyBar" style="display:none;">
+          <button class="wme-copy-btn secondary" onclick="wmeCopyFromLastMonth()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            复制上月排班
+          </button>
+          <button class="wme-copy-btn danger" onclick="wmeClearMonth()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+            清空本月
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="worship-search-wrap" id="worshipSearchWrap">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" class="worship-search-input" id="worshipSearchInput" placeholder="搜索人名，查看历史排班…" oninput="onWorshipSearch()">
+      <button class="worship-search-clear" onclick="clearWorshipSearch()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="worship-search-results" id="worshipSearchResults"></div>
     <div id="worshipScheduleContent"></div>
+    <button class="worship-fab" id="worshipFab" onclick="jumpToNearestWorshipDate()" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      回到本周
+    </button>
     <input type="hidden" id="worshipCloudUrl">
     <!-- hidden inputs needed by manage JS -->
     <input type="hidden" id="wmSermon">
@@ -2335,6 +2581,15 @@ const DEFAULT_WORSHIP_DATA = {
   '2026-06-28': {sermon:'邹王军',host:'根英',prayer:'待填写',songs:['待填写'],notices:['暂无通告'],roles:[{role:'主领',persons:['美美','雨婷']},{role:'伴唱',persons:['富雄','加恩','根英','婷婷']},{role:'键盘',persons:['玲晓','孙望']},{role:'吉他',persons:['智博','嘉乐']},{role:'贝斯',persons:['Isaac']},{role:'鼓',persons:['周阳']},{role:'教歌',persons:['根英']}]},
 };
 const WORSHIP_ROLES = ['主领','伴唱','键盘','吉他','贝斯','鼓','教歌'];
+const WORSHIP_ROLE_BADGE = {
+  '主领':{bg:'#1d7a52',text:'#fff'},
+  '伴唱':{bg:'#f6dcc0',text:'#8a5a10'},
+  '键盘':{bg:'#d7e0f5',text:'#2c4488'},
+  '吉他':{bg:'#f6d7de',text:'#93365a'},
+  '贝斯':{bg:'#ded4f5',text:'#573a94'},
+  '鼓':{bg:'#cdeee6',text:'#187865'},
+  '教歌':{bg:'#faedc0',text:'#8a660a'},
+};
 const DEFAULT_SONG_LIBRARY = ['待填写'];
 
 // ══ STATE ════════════════════════════════════════
@@ -2360,6 +2615,8 @@ let currentUser=JSON.parse(localStorage.getItem('churchCurrentUser')||'{"role":"
 let isAdmin=currentUser.role==='admin';
 let worshipData=JSON.parse(localStorage.getItem('churchWorshipData')||JSON.stringify(DEFAULT_WORSHIP_DATA));
 let selectedWorshipDate='';
+let worshipPickerYear=0;
+let worshipHeaderCollapsed=false;
 let worshipReturnPage='worship';
 let memberReturnPage='members';
 let worshipEditRoles={};
@@ -3042,6 +3299,7 @@ function saveBibleProgress(){
   localStorage.setItem('bibleReadingProgress',JSON.stringify({book:currentBibleBookAbbr,chapter:currentBibleChapter}));
 }
 function escapeHtml(str){return String(str).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
+function getInitials(n){if(!n)return'?';const t=String(n).trim();return /[a-zA-Z]/.test(t[0])?t.slice(0,2).toUpperCase():t.slice(0,1);}
 function initBiblePage(){
   if(!document.getElementById('page-bible'))return;
   // Restore night mode
@@ -3591,15 +3849,32 @@ function showPage(p){
 
 // ══ PUBLIC / WORSHIP ═════════════════════════════
 function getWorshipDates(){return Object.keys(worshipData).sort();}
+// Pure calendar helper: the nearest Sunday on/after a given date (yyyy-mm-dd), no dependency on saved data.
+// This is what makes the header roll over to next month's first Sunday once the
+// current month's Sundays have all passed, even if that Sunday has no schedule yet.
+function calendarNextSunday(fromDateStr){
+  const d=new Date((fromDateStr||today)+'T00:00:00');
+  d.setDate(d.getDate()+((7-d.getDay())%7));
+  return getLocalDateString(d);
+}
 function nearestWorshipDate(){
   const dates=getWorshipDates();
-  if(!dates.length)return today;
   if(selectedWorshipDate&&dates.includes(selectedWorshipDate))return selectedWorshipDate;
   const future=dates.find(d=>d>=today);
-  return future||dates[dates.length-1];
+  if(future)return future;
+  return calendarNextSunday(today);
+}
+// Pure version: always computes the nearest upcoming (or latest past) date with data, ignoring current selection.
+function trueNearestWorshipDate(){
+  const dates=getWorshipDates();
+  const future=dates.find(d=>d>=today);
+  if(future)return future;
+  // No upcoming date has been scheduled yet — roll over to the true calendar next Sunday
+  // (e.g. this month's Sundays are all in the past → jump to next month's first Sunday).
+  return calendarNextSunday(today);
 }
 function getWeeklyInfo(){
-  if(!selectedWorshipDate||!worshipData[selectedWorshipDate])selectedWorshipDate=nearestWorshipDate();
+  if(!selectedWorshipDate)selectedWorshipDate=nearestWorshipDate();
   return worshipData[selectedWorshipDate]||{sermon:'待填写',host:'待填写',prayer:'待填写',songs:['待填写'],notices:['暂无通告'],roles:[]};
 }
 /* ══ 今日金句系统 ══
@@ -4059,6 +4334,8 @@ function renderWeeklyPublic(){
   if(attLbl)attLbl.textContent=currentUser.label||'游客模式';
   const membersLbl=document.getElementById('membersAppbarUserLabel');
   if(membersLbl)membersLbl.textContent=currentUser.label||'游客模式';
+  const worshipLbl=document.getElementById('worshipAppbarUserLabel');
+  if(worshipLbl)worshipLbl.textContent=currentUser.label||'游客模式';
 
   const validNotices=(info.notices||[]).filter(n=>n&&n!=='暂无通告');
 
@@ -4754,25 +5031,243 @@ function getWorshipDayLabel(dateStr){
   return '周'+names[dow];
 }
 
-function renderWorshipPage(){
-  const tabs=document.getElementById('worshipDateTabs');
-  const content=document.getElementById('worshipScheduleContent');
-  if(!tabs||!content)return;
-  if(!selectedWorshipDate||!worshipData[selectedWorshipDate])selectedWorshipDate=nearestWorshipDate();
-  const dates=getWorshipDates();
-
-  // Date tabs
-  tabs.innerHTML=dates.map(d=>{
-    const mmdd=d.slice(5,10).replace('-','/');
-    const dayLabel=getWorshipDayLabel(d);
+// ══ Header card: date display + week nav + month picker ══
+function getWorshipSundaysOfMonth(y,m){
+  // m is 0-indexed month
+  const d=new Date(y,m,1),r=[];
+  while(d.getMonth()===m){if(d.getDay()===0)r.push(getLocalDateString(d));d.setDate(d.getDate()+1);}
+  return r;
+}
+function renderWorshipHeader(){
+  const dayEl=document.getElementById('worshipHdrDay');
+  const infoEl=document.getElementById('worshipHdrInfo');
+  if(!dayEl||!infoEl)return;
+  const d=new Date(selectedWorshipDate+'T00:00:00');
+  dayEl.textContent=`${d.getMonth()+1}月${d.getDate()}日`;
+  infoEl.textContent=`${d.getFullYear()}年 · ${getWorshipDayLabel(selectedWorshipDate)}`;
+  renderWorshipWeekNav(d.getFullYear(),d.getMonth());
+}
+function renderWorshipWeekNav(y,m){
+  const nav=document.getElementById('worshipWeekNav');
+  if(!nav)return;
+  const sundays=getWorshipSundaysOfMonth(y,m);
+  const todayStr=today;
+  nav.innerHTML=sundays.map(d=>{
+    const hasData=!!worshipData[d];
     const isActive=d===selectedWorshipDate;
-    return `<button class="worship-date-tab${isActive?' active':''}" onclick="selectWorshipDate('${d}')">
-      <span class="tab-date">${mmdd}</span>
-      <span class="tab-day">${dayLabel}</span>
-    </button>`;
-  }).join('')+`<button class="worship-date-tab-add worship-manage-only" onclick="openAddWorshipDateSheet()" title="添加主日">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-  </button>`;
+    const isToday=d===todayStr;
+    return `<div class="worship-sunday-pill${hasData?' has-data':''}${isActive?' active':''}${isToday?' is-today':''}" onclick="clickWorshipSunday('${d}')">
+      <span class="s-dow">${getWorshipDayLabel(d)}</span>
+      <span class="s-num">${new Date(d+'T00:00:00').getDate()}</span>
+    </div>`;
+  }).join('')+`<div class="worship-sunday-pill worship-manage-only" onclick="openAddWorshipDateSheet()" title="添加主日" style="opacity:.8;">
+      <span class="s-dow">添加</span>
+      <span class="s-num">+</span>
+    </div>`;
+}
+function clickWorshipSunday(date){
+  if(!worshipData[date]&&canManageWorship&&canManageWorship()){
+    if(confirm(`${date} 暂无排班，是否创建？`)){
+      worshipData[date]={sermon:'待填写',host:'待填写',prayer:'待填写',songs:[],notices:[],roles:[]};
+      localStorage.setItem('churchWorshipData',JSON.stringify(worshipData));
+    } else return;
+  }
+  selectWorshipDate(date);
+}
+function shiftWorshipMonth(delta){
+  const d=new Date(selectedWorshipDate+'T00:00:00');
+  const n=new Date(d.getFullYear(),d.getMonth()+delta,1);
+  const sundays=getWorshipSundaysOfMonth(n.getFullYear(),n.getMonth());
+  // Land on a Sunday in the target month; prefer one with data, else the first Sunday.
+  const withData=sundays.find(s=>worshipData[s]);
+  selectedWorshipDate=withData||sundays[0]||selectedWorshipDate;
+  renderWeeklyPublic();
+  renderWorshipPage();
+}
+function toggleWorshipHeaderCollapse(){
+  worshipHeaderCollapsed=!worshipHeaderCollapsed;
+  const card=document.getElementById('worshipHeaderCard');
+  const label=document.getElementById('worshipCollapseLabel');
+  if(card)card.classList.toggle('collapsed',worshipHeaderCollapsed);
+  if(label)label.textContent=worshipHeaderCollapsed?'展开':'收起';
+}
+function openWorshipMonthPicker(){
+  const d=new Date(selectedWorshipDate+'T00:00:00');
+  worshipPickerYear=d.getFullYear();
+  renderWorshipPickerGrid();
+  document.getElementById('worshipMonthPickerOverlay').classList.add('open');
+}
+function closeWorshipMonthPicker(e){
+  if(!e||e.target===document.getElementById('worshipMonthPickerOverlay'))document.getElementById('worshipMonthPickerOverlay').classList.remove('open');
+}
+function shiftWorshipPickerYear(delta){worshipPickerYear+=delta;renderWorshipPickerGrid();}
+function renderWorshipPickerGrid(){
+  document.getElementById('worshipPickerYearLabel').textContent=worshipPickerYear+'年';
+  const d=new Date(selectedWorshipDate+'T00:00:00');
+  const curY=d.getFullYear(),curM=d.getMonth();
+  const grid=document.getElementById('worshipPickerMonthGrid');
+  grid.innerHTML=Array.from({length:12},(_,m)=>{
+    const hasData=getWorshipSundaysOfMonth(worshipPickerYear,m).some(s=>worshipData[s]);
+    const isCurrent=worshipPickerYear===curY&&m===curM;
+    return `<button class="worship-picker-month-btn${isCurrent?' current':''}${hasData?' has-data':''}" onclick="pickWorshipMonth(${worshipPickerYear},${m})">${m+1}月</button>`;
+  }).join('');
+}
+function pickWorshipMonth(y,m){
+  closeWorshipMonthPicker();
+  const sundays=getWorshipSundaysOfMonth(y,m);
+  const withData=sundays.find(s=>worshipData[s]);
+  selectedWorshipDate=withData||sundays[0]||selectedWorshipDate;
+  renderWeeklyPublic();
+  renderWorshipPage();
+}
+// ══ Monthly batch editor (按月编辑排班) ══════════════
+let wmeYear=null, wmeMonth=null;
+function openWorshipMonthlyEditor(){
+  if(!requireWorshipManager())return;
+  const base=selectedWorshipDate||nearestWorshipDate();
+  const d=new Date(base+'T00:00:00');
+  wmeYear=d.getFullYear();
+  wmeMonth=d.getMonth();
+  renderWorshipMonthlyEditor();
+  document.getElementById('worshipMonthlyEditorOverlay').classList.add('open');
+}
+function closeWorshipMonthlyEditor(e){
+  if(!e||e.target===document.getElementById('worshipMonthlyEditorOverlay')){
+    document.getElementById('worshipMonthlyEditorOverlay').classList.remove('open');
+  }
+}
+function shiftWorshipMonthlyEditor(delta){
+  const d=new Date(wmeYear,wmeMonth+delta,1);
+  wmeYear=d.getFullYear();
+  wmeMonth=d.getMonth();
+  renderWorshipMonthlyEditor();
+}
+function renderWorshipMonthlyEditor(){
+  const titleEl=document.getElementById('wmeTitle');
+  const subEl=document.getElementById('wmeSub');
+  const body=document.getElementById('wmeBody');
+  const copyBar=document.getElementById('wmeCopyBar');
+  if(!titleEl||!subEl||!body)return;
+  const sundays=getWorshipSundaysOfMonth(wmeYear,wmeMonth);
+  const canEdit=canManageWorship();
+  titleEl.textContent=`${wmeYear}年${wmeMonth+1}月排班`;
+  subEl.textContent=`本月共 ${sundays.length} 个主日${canEdit?' · 点击角色可前往编辑':''}`;
+  if(copyBar)copyBar.style.display=canEdit?'flex':'none';
+  if(!sundays.length){
+    body.innerHTML='<div class="wme-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="36" height="36" style="display:block;margin:0 auto 10px;color:#ddd;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>该月没有主日</div>';
+    return;
+  }
+  const curKey=selectedWorshipDate||null;
+  body.innerHTML=sundays.map((key,idx)=>{
+    const day=worshipData[key]||{};
+    const roles=day.roles||[];
+    const dateObj=new Date(key+'T00:00:00');
+    const dateLabel=`${wmeMonth+1}月${dateObj.getDate()}日（${getWorshipDayLabel(key)}）`;
+    const sermon=(day.sermon&&day.sermon!=='待填写')?day.sermon:'';
+    const filledCount=roles.filter(r=>(r.persons||[]).length).length;
+    const metaStr=filledCount
+      ?`已排 ${filledCount}/${WORSHIP_ROLES.length} 个角色${sermon?' · 证道：'+sermon:''}`
+      :`尚未排班${sermon?' · 证道：'+sermon:''}`;
+    const isCur=key===curKey;
+    const isOpen=idx===0||isCur;
+
+    const rolesHtml=WORSHIP_ROLES.map(role=>{
+      const col=WORSHIP_ROLE_BADGE[role]||WORSHIP_ROLE_BADGE['教歌'];
+      const r=roles.find(x=>x.role===role);
+      const personsStr=(r&&r.persons&&r.persons.length)?r.persons.join(' / '):'';
+      const editAttr=canEdit?`onclick="wmeGotoEdit('${key}')" class="wme-role-row editable"`:`class="wme-role-row"`;
+      return `<div ${editAttr}>
+        <div class="wme-role-badge" style="background:${col.bg};color:${col.text}">${role}</div>
+        <div class="wme-role-persons ${personsStr?'':'empty'}">${escapeHtml(personsStr)||'未安排'}</div>
+        ${canEdit?'<div class="wme-role-edit-hint">✎</div>':''}
+      </div>`;
+    }).join('');
+
+    const addRowHtml=canEdit
+      ?`<div class="wme-add-row"><button class="wme-add-btn" onclick="wmeGotoEdit('${key}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>新增 / 批量编辑</button></div>`
+      :'';
+
+    return `<div class="wme-sunday-block">
+      <div class="wme-sunday-header ${isCur?'active-week':''}" onclick="wmeToggleBlock('${key}')">
+        <div>
+          <div class="wme-sunday-date">${dateLabel}${isCur?' 〈当前〉':''}</div>
+          <div class="wme-sunday-meta">${escapeHtml(metaStr)}</div>
+        </div>
+        <svg class="wme-chevron ${isOpen?'open':''}" id="wme-chev-${key}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="wme-sunday-body ${isOpen?'open':''}" id="wme-body-${key}">
+        ${rolesHtml}
+        ${addRowHtml}
+      </div>
+    </div>`;
+  }).join('');
+}
+function wmeToggleBlock(key){
+  const body=document.getElementById(`wme-body-${key}`);
+  const chev=document.getElementById(`wme-chev-${key}`);
+  if(!body||!chev)return;
+  const isOpen=body.classList.contains('open');
+  body.classList.toggle('open',!isOpen);
+  chev.classList.toggle('open',!isOpen);
+}
+function wmeGotoEdit(key){
+  if(!requireWorshipManager())return;
+  if(!worshipData[key]){
+    worshipData[key]={sermon:'待填写',host:'待填写',prayer:'待填写',songs:[],notices:[],roles:[]};
+    localStorage.setItem('churchWorshipData',JSON.stringify(worshipData));
+  }
+  selectedWorshipDate=key;
+  closeWorshipMonthlyEditor();
+  worshipReturnPage='worship';
+  showPage('worship-edit');
+}
+function wmeCopyFromLastMonth(){
+  if(!requireWorshipManager())return;
+  const prevD=new Date(wmeYear,wmeMonth-1,1);
+  const prevSundays=getWorshipSundaysOfMonth(prevD.getFullYear(),prevD.getMonth());
+  const curSundays=getWorshipSundaysOfMonth(wmeYear,wmeMonth);
+  if(!prevSundays.length){showToast('上月没有主日可复制');return;}
+  if(!curSundays.length){showToast('本月没有主日');return;}
+  const hasData=curSundays.some(d=>worshipData[d]&&(worshipData[d].roles||[]).length);
+  if(hasData&&!confirm('本月已有部分服事安排，复制上月排班会覆盖相同主日的服事团队（证道/主理/祷告信息也会一并覆盖）。确定继续？'))return;
+  curSundays.forEach((d,i)=>{
+    const srcKey=prevSundays[i%prevSundays.length];
+    const src=worshipData[srcKey];
+    if(!src)return;
+    worshipData[d]={
+      sermon:src.sermon||'待填写',
+      host:src.host||'待填写',
+      prayer:src.prayer||'待填写',
+      songs:[...(src.songs||[])],
+      notices:[...(src.notices||[])],
+      roles:(src.roles||[]).map(r=>({role:r.role,persons:[...(r.persons||[])]})),
+    };
+  });
+  localStorage.setItem('churchWorshipData',JSON.stringify(worshipData));
+  renderWorshipMonthlyEditor();
+  renderWeeklyPublic();
+  if(document.getElementById('page-worship')?.classList.contains('active'))renderWorshipPage();
+  showToast('✅ 已复制上月排班');
+}
+function wmeClearMonth(){
+  if(!requireWorshipManager())return;
+  const sundays=getWorshipSundaysOfMonth(wmeYear,wmeMonth);
+  const count=sundays.filter(d=>worshipData[d]&&(worshipData[d].roles||[]).length).length;
+  if(!count){showToast('本月暂无服事安排');return;}
+  if(!confirm(`确定要清空${wmeYear}年${wmeMonth+1}月的所有服事团队安排（共 ${count} 周）？证道/主理/祷告信息不受影响，此操作不可撤销。`))return;
+  sundays.forEach(d=>{if(worshipData[d])worshipData[d].roles=[];});
+  localStorage.setItem('churchWorshipData',JSON.stringify(worshipData));
+  renderWorshipMonthlyEditor();
+  renderWeeklyPublic();
+  if(document.getElementById('page-worship')?.classList.contains('active'))renderWorshipPage();
+  showToast('✅ 已清空本月服事安排');
+}
+
+function renderWorshipPage(){
+  const content=document.getElementById('worshipScheduleContent');
+  if(!content)return;
+  if(!selectedWorshipDate)selectedWorshipDate=nearestWorshipDate();
+  renderWorshipHeader();
 
   const info=getWeeklyInfo();
   const roleIcons={
@@ -4783,6 +5278,15 @@ function renderWorshipPage(){
     '贝斯':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
     '鼓':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="8" rx="10" ry="4"/><path d="M2 8v8c0 2.2 4.5 4 10 4s10-1.8 10-4V8"/><line x1="6" y1="4.5" x2="2" y2="2"/><line x1="18" y1="4.5" x2="22" y2="2"/></svg>',
     '教歌':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
+  };
+  const roleColors={
+    '主领':{bg:'#eaf6ef',text:'#1d7a52',badgeBg:'#1d7a52',badgeText:'#fff'},
+    '伴唱':{bg:'#fdf2e9',text:'#b9770e',badgeBg:'#f6dcc0',badgeText:'#8a5a10'},
+    '键盘':{bg:'#eef2fb',text:'#3a5bab',badgeBg:'#d7e0f5',badgeText:'#2c4488'},
+    '吉他':{bg:'#fbeef0',text:'#b1476a',badgeBg:'#f6d7de',badgeText:'#93365a'},
+    '贝斯':{bg:'#f1eefb',text:'#6c4bab',badgeBg:'#ded4f5',badgeText:'#573a94'},
+    '鼓':{bg:'#eefaf7',text:'#1f8f7c',badgeBg:'#cdeee6',badgeText:'#187865'},
+    '教歌':{bg:'#fef9e7',text:'#a87c0a',badgeBg:'#faedc0',badgeText:'#8a660a'},
   };
 
   const sermon=info.sermon||'待填写';
@@ -4821,12 +5325,31 @@ function renderWorshipPage(){
         <div class="worship-team-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
         <div class="worship-team-title">服事团队</div>
       </div>
-      ${roles.map(r=>`
-      <div class="worship-role-row">
-        <div class="worship-role-icon-wrap">${roleIcons[r.role]||roleIcons['教歌']}</div>
-        <div class="worship-role-name">${escapeHtml(r.role)}</div>
-        <div class="worship-role-persons">${(r.persons||[]).join(' · ')||'<span style="color:#ccc">待填写</span>'}</div>
-      </div>`).join('')}
+      <div class="wsr-list">
+      ${roles.map((r,i)=>{
+        const col=roleColors[r.role]||roleColors['教歌'];
+        const isFirst=i===0;
+        const editable=typeof canManageWorship==='function'&&canManageWorship();
+        const persons=r.persons||[];
+        const personsHtml=persons.length
+          ?persons.map(p=>{
+            const ab=isFirst?'rgba(255,255,255,0.28)':col.bg, at=isFirst?'#fff':col.text;
+            return `<div class="wsr-person"><span class="wsr-avatar" style="background:${ab};color:${at}">${escapeHtml(getInitials(p))}</span><span class="wsr-person-name">${escapeHtml(p)}</span></div>`;
+          }).join('')
+          :'<span class="wsr-empty-name">待填写</span>';
+        const clickAttr=editable?` onclick="openWorshipEdit()" title="点击修改"`:'';
+        const moreBtn=editable?`<button class="wsr-more-btn" onclick="event.stopPropagation();openWorshipEdit()">✎</button>`:'';
+        return `<div class="wsr-row">
+          <div class="wsr-role-label">
+            <div class="wsr-role-badge" style="background:${col.badgeBg}">
+              <span style="color:${col.badgeText};display:flex;">${roleIcons[r.role]||roleIcons['教歌']}</span>
+              <span class="wsr-role-text" style="color:${col.badgeText}">${escapeHtml(r.role)}</span>
+            </div>
+          </div>
+          <div class="wsr-shift-card${editable?' editable':''}${isFirst?' active-card':''}"${clickAttr}>${moreBtn}<div class="wsr-shift-name">${escapeHtml(r.role)}</div><div class="wsr-persons">${personsHtml}</div></div>
+        </div>`;
+      }).join('')}
+      </div>
       ${songs.length?`
       <button class="worship-songs-btn" onclick="openSongLibrary()">
         <div class="worship-songs-btn-left">
@@ -4844,6 +5367,51 @@ function renderWorshipPage(){
       </button>`}
     </div>`:`<div style="padding:32px 0;text-align:center;color:#bbb;font-size:14px;">本周暂无敬拜排班</div>`}`;
   startScheduleTicker();
+  const fab=document.getElementById('worshipFab');
+  if(fab)fab.style.display=(selectedWorshipDate&&selectedWorshipDate!==trueNearestWorshipDate())?'flex':'none';
+}
+function jumpToNearestWorshipDate(){
+  selectedWorshipDate=trueNearestWorshipDate();
+  renderWeeklyPublic();
+  renderWorshipPage();
+}
+function onWorshipSearch(){
+  const wrap=document.getElementById('worshipSearchWrap');
+  const input=document.getElementById('worshipSearchInput');
+  const panel=document.getElementById('worshipSearchResults');
+  const q=(input.value||'').trim();
+  wrap.classList.toggle('has-text',!!q);
+  if(!q){panel.classList.remove('show');panel.innerHTML='';return;}
+  const qLower=q.toLowerCase();
+  const dates=getWorshipDates().sort();
+  const rows=[];
+  dates.forEach(d=>{
+    const day=worshipData[d]||{};
+    const matchedRoles=(day.roles||[]).filter(r=>(r.persons||[]).some(p=>p.toLowerCase().includes(qLower)));
+    const matchesOther=(day.sermon||'').toLowerCase().includes(qLower)||(day.host||'').toLowerCase().includes(qLower)||(day.prayer||'').toLowerCase().includes(qLower);
+    if(matchedRoles.length||matchesOther){
+      const parts=[];
+      if((day.sermon||'').toLowerCase().includes(qLower))parts.push('证道');
+      if((day.host||'').toLowerCase().includes(qLower))parts.push('主理');
+      if((day.prayer||'').toLowerCase().includes(qLower))parts.push('祷告');
+      matchedRoles.forEach(r=>parts.push(r.role));
+      rows.push({date:d,roles:parts});
+    }
+  });
+  panel.classList.add('show');
+  panel.innerHTML=rows.length?rows.map(r=>{
+    const mmdd=r.date.slice(5,10).replace('-','/');
+    const dayLabel=getWorshipDayLabel(r.date);
+    return `<div class="worship-search-result-row" onclick="selectWorshipDate('${r.date}');clearWorshipSearch();">
+      <span class="worship-search-result-date">${mmdd} ${dayLabel}</span>
+      <span class="worship-search-result-roles">${r.roles.join(' · ')}</span>
+    </div>`;
+  }).join(''):`<div class="worship-search-empty">未找到与"${escapeHtml(q)}"相关的排班</div>`;
+}
+function clearWorshipSearch(){
+  const input=document.getElementById('worshipSearchInput');
+  if(input)input.value='';
+  onWorshipSearch();
 }
 // ══ 聚会流程时间轴 ════════════════════════════════
 // 各聚会日程默认模板（按星期几：0=日，5=五，6=六）
@@ -5711,14 +6279,27 @@ function renderRoleEditor(){
   normalizeRoleCandidatePools();
   const summary=document.getElementById('memberLibrarySummary');
   if(summary)summary.textContent=`敬拜组：已选 ${worshipServants.length} 人。岗位候选人库只能从敬拜组添加。`;
-  el.innerHTML=WORSHIP_ROLES.map(role=>`
-    <div class="role-editor-row">
+  el.innerHTML=WORSHIP_ROLES.map(role=>{
+    const people=worshipEditRoles[role]||[];
+    const chips=people.length
+      ?`<div class="role-editor-people-chips">${people.map(p=>`<span class="worship-avatar-chip"><span class="av-circle">${escapeHtml(getInitials(p))}</span>${escapeHtml(p)}<button type="button" class="chip-remove" title="移除" data-role="${role}" data-name="${p.replace(/"/g,'&quot;')}">✕</button></span>`).join('')}</div>`
+      :'<span style="color:var(--muted);">未选择</span>';
+    return `<div class="role-editor-row">
       <div class="role-editor-name">${role}</div>
-      <div class="role-editor-people">${(worshipEditRoles[role]||[]).join(' / ')||'<span style="color:var(--muted);">未选择</span>'}</div>
+      <div class="role-editor-people">${chips}</div>
       <button class="btn btn-outline btn-sm role-picker-btn" data-role="${role}">选择人员</button>
-    </div>`).join('');
+    </div>`;
+  }).join('');
   el.querySelectorAll('.role-picker-btn').forEach(btn=>{
     btn.addEventListener('click',()=>openEditPeoplePicker(btn.dataset.role));
+  });
+  el.querySelectorAll('.chip-remove').forEach(btn=>{
+    btn.addEventListener('click',(e)=>{
+      e.stopPropagation();
+      const role=btn.dataset.role,name=btn.dataset.name;
+      worshipEditRoles[role]=(worshipEditRoles[role]||[]).filter(n=>n!==name);
+      renderRoleEditor();
+    });
   });
 }
 function optionKey(type){return type==='sermon'?'sermons':type==='host'?'hosts':'prayers';}
